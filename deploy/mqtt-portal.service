@@ -1,0 +1,22 @@
+[Unit]
+Description=MQTT Class Portal (self-registration + admin)
+After=network.target mosquitto.service
+
+[Service]
+Type=simple
+# Adjust User and paths to where you deployed the app:
+User=mqttportal
+WorkingDirectory=/opt/mqtt-portal
+EnvironmentFile=/opt/mqtt-portal/.env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=3
+# Hardening:
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/mqtt-portal/data
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

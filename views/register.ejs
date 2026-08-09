@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MQTT Class Portal — Register</title>
+<link rel="stylesheet" href="/static/style.css">
+</head><body>
+<main class="card">
+  <h1>MQTT Class Portal</h1>
+  <p class="sub">Create your broker account for the ESP32 &rarr; MQTT &rarr; Node-RED exercises.</p>
+
+  <% if (done) { %>
+    <div class="ok">
+      <h2>You're all set ✓</h2>
+      <p>Username: <code><%= done.username %></code></p>
+      <p>Your topics: <code><%= done.namespace %></code> — you can publish &amp; subscribe only under here.</p>
+      <p class="hint">Use it in your sketch:</p>
+<pre>bridge.broker("<%= brokerHost %>")
+      .secure()
+      .login("<%= done.username %>", "&lt;your password&gt;");</pre>
+      <p><a href="/">Register another</a></p>
+    </div>
+  <% } else { %>
+    <% if (error) { %><div class="err"><%= error %></div><% } %>
+    <form method="post" action="/register" autocomplete="off">
+      <label>Your name (optional)
+        <input name="display" maxlength="60" placeholder="Ada Lovelace">
+      </label>
+      <label>Username <span class="req">*</span>
+        <input name="username" required pattern="[a-zA-Z][a-zA-Z0-9_\-]{2,19}" placeholder="ada">
+        <small>Start with a letter; 3–20 of a–z, 0–9, _ or -</small>
+      </label>
+      <label>Password <span class="req">*</span>
+        <input name="password" type="password" required minlength="8" placeholder="at least 8 characters">
+      </label>
+      <label>Class code <span class="req">*</span>
+        <input name="classcode" required placeholder="code from your instructor">
+      </label>
+      <button type="submit">Create my account</button>
+    </form>
+  <% } %>
+</main>
+</body></html>

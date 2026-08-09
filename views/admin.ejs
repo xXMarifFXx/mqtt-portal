@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MQTT Portal — Admin</title>
+<link rel="stylesheet" href="/static/style.css">
+</head><body>
+<main class="card wide">
+  <div class="row spread">
+    <h1>Students <span class="count"><%= rows.length %></span></h1>
+    <form method="post" action="/logout"><button class="ghost">Log out</button></form>
+  </div>
+  <% if (ok)  { %><div class="ok inline"><%= ok %></div><% } %>
+  <% if (error) { %><div class="err"><%= error %></div><% } %>
+
+  <% if (rows.length === 0) { %>
+    <p class="sub">No student accounts yet. Share the registration link + class code with your class.</p>
+  <% } else { %>
+  <table>
+    <thead><tr><th>Username</th><th>Name</th><th>Created</th><th>Reset password</th><th></th></tr></thead>
+    <tbody>
+    <% rows.forEach(function(r){ %>
+      <tr>
+        <td><code><%= r.username %></code></td>
+        <td><%= r.displayName || '—' %></td>
+        <td class="muted"><%= r.createdAt ? r.createdAt.slice(0,10) : '—' %></td>
+        <td>
+          <form method="post" action="/admin/reset" class="inlineform">
+            <input type="hidden" name="username" value="<%= r.username %>">
+            <input name="password" type="text" placeholder="new password" minlength="8" required>
+            <button>Reset</button>
+          </form>
+        </td>
+        <td>
+          <form method="post" action="/admin/delete" data-confirm="Delete <%= r.username %>?">
+            <input type="hidden" name="username" value="<%= r.username %>">
+            <button class="danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+    <% }); %>
+    </tbody>
+  </table>
+  <% } %>
+</main>
+<script src="/static/confirm.js"></script>
+</body></html>
