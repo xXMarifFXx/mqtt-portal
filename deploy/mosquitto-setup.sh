@@ -14,9 +14,9 @@
 set -euo pipefail
 
 # ----------------------------- CONFIG (edit me) -----------------------------
-DOMAIN="mqtt.example.com"      # the DNS name that points at THIS server
-EMAIL="you@example.com"        # for Let's Encrypt expiry notices
-MQTT_USER="esp32user"          # the broker username your ESP32 + Node-RED will use
+DOMAIN="mqtt.mariffb.my"       # the DNS name that points at THIS server
+EMAIL="you@example.com"        # <-- EDIT: your email for Let's Encrypt expiry notices
+MQTT_USER="esp32user"          # base user (superseded by Dynamic Security after enable-dynsec.sh)
 # ---------------------------------------------------------------------------
 
 CERTDIR="/etc/mosquitto/certs"

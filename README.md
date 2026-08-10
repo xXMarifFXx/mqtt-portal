@@ -33,10 +33,10 @@ Student browser ──HTTPS 443──> nginx ──> mqtt-portal (Node, localhos
 
 ## Deploy — single domain (Ubuntu/Debian VPS)
 
-Everything shares **one domain** and **one Let's Encrypt cert**: portal on `https://YOUR.DOMAIN`,
-devices on `YOUR.DOMAIN:8883`, browser console on `YOUR.DOMAIN:8084`.
+Everything shares **one domain** and **one Let's Encrypt cert**: portal on `https://mqtt.mariffb.my`,
+devices on `mqtt.mariffb.my:8883`, browser console on `mqtt.mariffb.my:8084`.
 
-**0. DNS:** point an `A` record for `YOUR.DOMAIN` at the VPS public IP.
+**0. DNS:** point an `A` record for `mqtt.mariffb.my` at the VPS public IP.
 
 **1. Base broker + TLS cert** (edit `DOMAIN`/`EMAIL`/`MQTT_USER` at the top first):
 ```bash
@@ -59,7 +59,7 @@ sudo cp -r . /opt/mqtt-portal && cd /opt/mqtt-portal && sudo npm ci --omit=dev
 ```
 
 **4. Configure** (`sudo cp .env.example .env`, then edit): set `CLASS_CODE`,
-`PUBLIC_BROKER_HOST=YOUR.DOMAIN`, `DYNSEC_ADMIN_PASS`, `SESSION_SECRET`
+`PUBLIC_BROKER_HOST=mqtt.mariffb.my`, `DYNSEC_ADMIN_PASS`, `SESSION_SECRET`
 (`openssl rand -hex 32`), `NODE_ENV=production`, and the admin hash:
 ```bash
 node scripts/hashpw.js 'your admin password'   # paste output as ADMIN_PASSWORD_HASH
@@ -70,13 +70,13 @@ node scripts/hashpw.js 'your admin password'   # paste output as ADMIN_PASSWORD_
 sudo cp deploy/mqtt-portal.service /etc/systemd/system/ && sudo systemctl enable --now mqtt-portal
 ```
 
-**6. HTTPS front (reuses the cert from step 1 — no second certbot):** edit `YOUR.DOMAIN` in
+**6. HTTPS front (reuses the cert from step 1 — no second certbot):** edit `mqtt.mariffb.my` in
 `deploy/nginx-mqtt-portal.conf`, then:
 ```bash
 sudo cp deploy/nginx-mqtt-portal.conf /etc/nginx/sites-available/mqtt-portal && sudo ln -sf /etc/nginx/sites-available/mqtt-portal /etc/nginx/sites-enabled/ && sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Students go to `https://YOUR.DOMAIN`, enter the class code, get credentials + a copy-paste
+Students go to `https://mqtt.mariffb.my`, enter the class code, get credentials + a copy-paste
 card, and can verify with the built-in test console. You manage them at `/admin`.
 
 ## Security notes
