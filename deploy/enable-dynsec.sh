@@ -46,9 +46,18 @@ listener 8883
 certfile ${CERTDIR}/fullchain.pem
 keyfile  ${CERTDIR}/privkey.pem
 
+# Public, TLS over WebSockets, for the browser test console (portal /console page):
+listener 8084
+protocol websockets
+certfile ${CERTDIR}/fullchain.pem
+keyfile  ${CERTDIR}/privkey.pem
+
 # Localhost-only, plaintext, for the portal + Node-RED + mosquitto_ctrl:
 listener 1883 127.0.0.1
 CONF_EOF
+
+echo ">> Opening the WebSocket TLS port (8084) in the firewall..."
+command -v ufw >/dev/null && ufw allow 8084/tcp >/dev/null 2>&1 || true
 
 echo ">> Restarting mosquitto..."
 systemctl restart mosquitto

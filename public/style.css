@@ -29,3 +29,26 @@ th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04
 .row.spread{display:flex;justify-content:space-between;align-items:center}
 .count{background:#eef2f7;color:var(--muted);border-radius:20px;padding:2px 10px;font-size:14px;font-weight:600;margin-left:6px}
 .inlineform{display:flex;gap:6px}.inlineform input{margin-top:0}.inlineform button{padding:8px 12px}
+
+/* connection card + test console */
+.sectionhead{font-size:14px;margin:18px 0 6px;display:flex;align-items:center;gap:8px}
+.copybtn{background:#eef2f7;color:var(--ink);padding:3px 10px;font-size:12px;font-weight:600;border-radius:6px}
+.kv{width:100%;border-collapse:collapse;font-size:14px}
+.kv th{text-align:left;color:var(--muted);font-weight:600;padding:6px 12px 6px 0;white-space:nowrap;width:1%}
+.kv td{padding:6px 0}
+.cta{margin-top:18px}
+.btnlink{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:9px 16px;border-radius:9px;font-weight:600}
+.conn{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:8px 0 18px}
+.conn label{margin:0;flex:1 1 160px}
+.conn button{padding:11px 18px}
+.badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;align-self:center}
+.badge.off{background:#eef2f7;color:var(--muted)}
+.badge.on{background:#eafaf1;color:var(--ok)}
+.badge.warn{background:#fff6e5;color:#a86b00}
+.badge.err{background:#fdecec;color:var(--err)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.pubform{display:flex;flex-direction:column;gap:6px}.pubform input{margin-top:0}
+.messages{margin-top:10px;height:220px;overflow:auto;background:#0f1720;border-radius:9px;padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#dbe7ff}
+.messages .msg{padding:2px 0;border-bottom:1px solid #1e2a38;word-break:break-all}
+.messages .mt{color:#7c8ba1}.messages .mtopic{color:#67d3a0}.messages .mpay{color:#dbe7ff}

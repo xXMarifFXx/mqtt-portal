@@ -4,21 +4,41 @@
 <title>MQTT Class Portal — Register</title>
 <link rel="stylesheet" href="/static/style.css">
 </head><body>
-<main class="card">
+<main class="card <%= done ? 'wide' : '' %>">
   <h1>MQTT Class Portal</h1>
   <p class="sub">Create your broker account for the ESP32 &rarr; MQTT &rarr; Node-RED exercises.</p>
 
   <% if (done) { %>
     <div class="ok">
       <h2>You're all set ✓</h2>
-      <p>Username: <code><%= done.username %></code></p>
-      <p>Your topics: <code><%= done.namespace %></code> — you can publish &amp; subscribe only under here.</p>
-      <p class="hint">Use it in your sketch:</p>
-<pre>bridge.broker("<%= brokerHost %>")
-      .secure()
-      .login("<%= done.username %>", "&lt;your password&gt;");</pre>
-      <p><a href="/">Register another</a></p>
+      <p>Use the password you just chose with the details below. Your account can only
+         publish/subscribe under <code><%= done.namespace %></code>.</p>
     </div>
+
+    <h3 class="sectionhead">Your connection details</h3>
+    <table class="kv">
+      <tr><th>Broker host</th><td><code><%= broker.host %></code></td></tr>
+      <tr><th>Port (TLS)</th><td><code><%= broker.port %></code> &nbsp;·&nbsp; TLS: <b>on</b></td></tr>
+      <tr><th>Username</th><td><code><%= done.username %></code></td></tr>
+      <tr><th>Your topics</th><td><code>devices/<%= done.username %>/#</code></td></tr>
+    </table>
+
+    <h3 class="sectionhead">Arduino (N-R_ESP32 library) <button class="copybtn" data-copy="#ino">Copy</button></h3>
+<pre id="ino">bridge.wifi("YOUR_WIFI", "YOUR_WIFI_PASSWORD")
+      .broker("<%= broker.host %>")          // port auto &rarr; <%= broker.port %>
+      .secure()                              // TLS
+      .login("<%= done.username %>", "YOUR_PASSWORD");
+bridge.begin("<%= done.username %>");        // your topics: devices/<%= done.username %>/…</pre>
+
+    <h3 class="sectionhead">Quick test from a terminal <button class="copybtn" data-copy="#sub">Copy</button></h3>
+<pre id="sub">mosquitto_sub -h <%= broker.host %> -p <%= broker.port %> --capath /etc/ssl/certs \
+  -u <%= done.username %> -P 'YOUR_PASSWORD' -t 'devices/<%= done.username %>/#' -v</pre>
+
+    <p class="cta">
+      <a class="btnlink" href="/console?u=<%= encodeURIComponent(done.username) %>">Open the MQTT test console →</a>
+      &nbsp; <a href="/">Register another</a>
+    </p>
+    <script src="/static/copy.js"></script>
   <% } else { %>
     <% if (error) { %><div class="err"><%= error %></div><% } %>
     <form method="post" action="/register" autocomplete="off">
@@ -37,6 +57,7 @@
       </label>
       <button type="submit">Create my account</button>
     </form>
+    <p class="cta"><a href="/console">Already have an account? Open the MQTT test console →</a></p>
   <% } %>
 </main>
 </body></html>

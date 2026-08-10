@@ -18,10 +18,22 @@ const V = require('./lib/validate');
 const dynsec = require('./lib/dynsec');
 const store = require('./lib/store');
 
+const BROKER_HOST = process.env.PUBLIC_BROKER_HOST || 'your-broker.example.com';
+const BROKER_PORT = process.env.PUBLIC_BROKER_PORT || '8883';        // MQTT over TLS (devices)
+const BROKER_WS_PORT = process.env.PUBLIC_BROKER_WS_PORT || '8084';  // MQTT over WebSocket TLS (browser)
+const WSS_URL = `wss://${BROKER_HOST}:${BROKER_WS_PORT}`;
+
 const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(helmet());
+// CSP: self-hosted scripts only, but allow the browser test console to open a
+// WebSocket to the broker (wss). Everything else stays locked down.
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: { 'script-src': ["'self'"], 'connect-src': ["'self'", WSS_URL] },
+  },
+}));
 app.use(express.urlencoded({ extended: false }));
 app.use('/static', express.static(path.join(__dirname, 'public')));
 app.set('trust proxy', 1); // behind nginx
@@ -36,7 +48,7 @@ app.use(session({
 
 const CLASS_CODE = process.env.CLASS_CODE || '';
 const ADMIN_HASH = process.env.ADMIN_PASSWORD_HASH || ''; // "salthex:hashhex"
-const BROKER_HOST = process.env.PUBLIC_BROKER_HOST || 'your-broker.example.com';
+const broker = { host: BROKER_HOST, port: BROKER_PORT, wss: WSS_URL };
 
 // In production a stable SESSION_SECRET is mandatory (a random per-boot one silently
 // logs every admin out on each restart). Fail fast rather than "work" then surprise.
@@ -61,7 +73,7 @@ const loginLimiter = rateLimit({ windowMs: 15 * 60e3, max: 10 });
 
 // ---- student registration --------------------------------------------------
 app.get('/', (req, res) => {
-  res.render('register', { error: null, done: null, brokerHost: BROKER_HOST });
+  res.render('register', { error: null, done: null, broker });
 });
 
 app.post('/register', regLimiter, async (req, res) => {
@@ -69,7 +81,7 @@ app.post('/register', regLimiter, async (req, res) => {
   const password = String(req.body.password || '');
   const display = V.cleanDisplayName(req.body.display);
   const code = String(req.body.classcode || '');
-  const err = (m) => res.status(400).render('register', { error: m, done: null, brokerHost: BROKER_HOST });
+  const err = (m) => res.status(400).render('register', { error: m, done: null, broker });
 
   if (!CLASS_CODE || !V.secretEquals(code, CLASS_CODE)) return err('Wrong or missing class code.');
   if (!V.validUsername(username)) return err('Username: start with a letter, 3–20 chars of a–z, 0–9, _ or -, and not a reserved word.');
@@ -79,13 +91,18 @@ app.post('/register', regLimiter, async (req, res) => {
     await dynsec.createStudent(username, password);
     store.record(username, display, new Date().toISOString());
     return res.render('register', {
-      error: null, brokerHost: BROKER_HOST,
+      error: null, broker,
       done: { username, namespace: V.namespaceFor(username) },
     });
   } catch (e) {
     const msg = /exist/i.test(e.message) ? 'That username is already taken.' : 'Could not create the account. Ask your instructor.';
     return err(msg);
   }
+});
+
+// ---- browser MQTT test console (public; connects with the student's own creds) ----
+app.get('/console', (req, res) => {
+  res.render('console', { broker, prefill: String(req.query.u || '') });
 });
 
 // ---- admin -----------------------------------------------------------------

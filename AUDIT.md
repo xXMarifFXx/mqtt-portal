@@ -2,6 +2,18 @@
 
 Date: 2026-08-09 · scope: full · verdict: **GO** — P2 fixed + top P3s cleared in this pass.
 
+## v0.2.0 addendum — connection card + browser test console
+New surface reviewed:
+- **`/console`** is public and does **no** server-side work beyond rendering; the student's
+  broker credentials are used **client-side only** (MQTT.js → wss) and never sent to the portal.
+- **CSP** was tightened, not loosened: `script-src 'self'` (all JS self-hosted, incl. the
+  vendored MQTT.js) and `connect-src` allows a WebSocket **only** to the configured broker.
+- **Supply chain:** MQTT.js is **vendored + pinned** (`public/vendor/mqtt.min.js`, v5.10.1 from
+  unpkg), not loaded from a CDN — no third-party origin at runtime.
+- The broker's wss listener (8084) uses the same TLS cert + Dynamic Security ACLs, so the console
+  is bound by the same per-student `devices/%u/#` scoping. No new server secrets.
+No new P0/P1/P2.
+
 Profile: **public web app** · Node.js/Express + EJS, server-rendered, session auth ·
 handles **credentials** (student broker passwords in transit, admin password hashed, class
 code) · minimal PII (optional display name) · exposure: **public internet** (self-service

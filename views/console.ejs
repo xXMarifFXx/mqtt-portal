@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MQTT Test Console</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-wss="<%= broker.wss %>" data-user="<%= prefill %>">
+<main class="card wide">
+  <div class="row spread">
+    <h1>MQTT Test Console</h1>
+    <a href="/">← back</a>
+  </div>
+  <p class="sub">Connect with your broker account to check it works, then publish and subscribe live.</p>
+
+  <div class="conn">
+    <label>Broker<input id="wss" readonly value="<%= broker.wss %>"></label>
+    <label>Username<input id="user" placeholder="ada" value="<%= prefill %>"></label>
+    <label>Password<input id="pass" type="password" placeholder="your password"></label>
+    <button id="connect">Connect</button>
+    <span id="status" class="badge off">disconnected</span>
+  </div>
+
+  <div class="grid2">
+    <section>
+      <h3 class="sectionhead">Subscribe</h3>
+      <div class="inlineform">
+        <input id="subTopic" placeholder="devices/ada/#">
+        <button id="subBtn" disabled>Subscribe</button>
+      </div>
+      <div id="messages" class="messages"><em class="muted">Messages will appear here…</em></div>
+    </section>
+    <section>
+      <h3 class="sectionhead">Publish</h3>
+      <div class="pubform">
+        <input id="pubTopic" placeholder="devices/ada/test">
+        <input id="pubPayload" placeholder='{"value":42} or hello'>
+        <button id="pubBtn" disabled>Publish</button>
+      </div>
+      <p class="hint">Tip: subscribe to <code>devices/&lt;you&gt;/#</code>, then publish to
+        <code>devices/&lt;you&gt;/test</code> — you should see it arrive. That proves your MQTT is up.</p>
+    </section>
+  </div>
+</main>
+<script src="/static/vendor/mqtt.min.js"></script>
+<script src="/static/console.js"></script>
+</body></html>

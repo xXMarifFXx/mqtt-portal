@@ -1,6 +1,6 @@
 {
   "name": "mqtt-portal",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Class-code self-registration + admin panel for a Mosquitto broker (Dynamic Security).",
   "main": "server.js",
   "scripts": {
@@ -9,7 +9,9 @@
     "hashpw": "node scripts/hashpw.js",
     "test": "node test/test_validate.js"
   },
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
