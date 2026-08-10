@@ -20,8 +20,12 @@ const store = require('./lib/store');
 
 const BROKER_HOST = process.env.PUBLIC_BROKER_HOST || 'your-broker.example.com';
 const BROKER_PORT = process.env.PUBLIC_BROKER_PORT || '8883';        // MQTT over TLS (devices)
-const BROKER_WS_PORT = process.env.PUBLIC_BROKER_WS_PORT || '8084';  // MQTT over WebSocket TLS (browser)
-const WSS_URL = `wss://${BROKER_HOST}:${BROKER_WS_PORT}`;
+const BROKER_WS_PORT = process.env.PUBLIC_BROKER_WS_PORT || '8084';  // fallback wss port (separate-server setups)
+// Full wss URL the browser console connects to. Same-box-with-Caddy setups set this
+// to e.g. wss://mqtt.mariffb.my/mqtt ; otherwise it defaults to host:port.
+const WSS_URL = process.env.PUBLIC_BROKER_WSS_URL || `wss://${BROKER_HOST}:${BROKER_WS_PORT}`;
+// CSP connect-src needs the ORIGIN only (scheme://host[:port], no path).
+const WSS_ORIGIN = (() => { try { const u = new URL(WSS_URL); return u.protocol + '//' + u.host; } catch (_) { return WSS_URL; } })();
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -31,7 +35,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(helmet({
   contentSecurityPolicy: {
     useDefaults: true,
-    directives: { 'script-src': ["'self'"], 'connect-src': ["'self'", WSS_URL] },
+    directives: { 'script-src': ["'self'"], 'connect-src': ["'self'", WSS_ORIGIN] },
   },
 }));
 app.use(express.urlencoded({ extended: false }));

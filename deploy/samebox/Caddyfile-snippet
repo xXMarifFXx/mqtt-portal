@@ -1,0 +1,14 @@
+# Add this block to your existing /etc/caddy/Caddyfile (same box that already
+# serves sni-eng.com). Caddy auto-issues the cert for mqtt.mariffb.my, serves the
+# portal, and proxies the browser test console's WebSocket to Mosquitto.
+#
+# After editing:  sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy
+
+mqtt.mariffb.my {
+    # Browser MQTT test console: wss://mqtt.mariffb.my/mqtt -> local Mosquitto WS
+    @ws path /mqtt
+    reverse_proxy @ws 127.0.0.1:8083
+
+    # Everything else -> the portal (Node app)
+    reverse_proxy 127.0.0.1:3000
+}

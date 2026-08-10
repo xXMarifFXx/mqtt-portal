@@ -1,0 +1,7 @@
+[Unit]
+Description=Sync Caddy TLS cert to Mosquitto (mqtt.mariffb.my)
+After=caddy.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mqtt-portal/deploy/samebox/sync-caddy-cert.sh

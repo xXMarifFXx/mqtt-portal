@@ -31,7 +31,13 @@ Student browser ──HTTPS 443──> nginx ──> mqtt-portal (Node, localhos
   `mosquitto_ctrl` calls in `lib/dynsec.js` (flags/paths vary by Mosquitto version — that's the
   one file to tweak), and the **wss test console** end-to-end (needs the 8084 listener live).
 
-## Deploy — single domain (Ubuntu/Debian VPS)
+## Deploy
+
+> **Already running Caddy on this box** (e.g. alongside sni-eng.com)? Use
+> **[deploy/SAMEBOX.md](deploy/SAMEBOX.md)** instead of the steps below — it rides on your
+> existing Caddy (no certbot/nginx, no port-80 conflict) and proxies the wss console.
+
+### Standalone server — single domain (Ubuntu/Debian VPS)
 
 Everything shares **one domain** and **one Let's Encrypt cert**: portal on `https://mqtt.mariffb.my`,
 devices on `mqtt.mariffb.my:8883`, browser console on `mqtt.mariffb.my:8084`.

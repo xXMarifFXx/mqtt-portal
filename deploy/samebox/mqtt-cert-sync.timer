@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily Caddy->Mosquitto cert sync (follows Let's Encrypt renewals)
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
