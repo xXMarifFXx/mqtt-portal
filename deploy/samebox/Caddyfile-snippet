@@ -9,6 +9,6 @@ mqtt.mariffb.my {
     @ws path /mqtt
     reverse_proxy @ws 127.0.0.1:8083
 
-    # Everything else -> the portal (Node app)
-    reverse_proxy 127.0.0.1:3000
+    # Everything else -> the portal (Node app on :3001, to avoid a :3000 clash)
+    reverse_proxy 127.0.0.1:3001
 }
