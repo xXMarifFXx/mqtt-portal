@@ -69,6 +69,14 @@ CONF_EOF
 command -v ufw >/dev/null && ufw allow 8883/tcp >/dev/null 2>&1 || true
 systemctl restart mosquitto; sleep 1
 
+# Verify the admin password NOW — otherwise the role commands below fail auth
+# silently (|| true) and the ACLs never get applied.
+if ! ctrl dynsec listClients >/dev/null 2>&1; then
+  echo "ERROR: the '${ADMIN_USER}' password was rejected — roles NOT created."
+  echo "       Re-run this script and enter the correct password."
+  exit 1
+fi
+
 echo ">> Creating roles..."
 ctrl dynsec createRole student  2>/dev/null || echo "   (student role exists)"
 ctrl dynsec addRoleACL student  publishClientSend    'devices/%u/#' allow || true
