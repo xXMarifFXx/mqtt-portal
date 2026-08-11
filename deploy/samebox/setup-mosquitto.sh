@@ -14,7 +14,6 @@ ADMIN_USER="dynsec-admin"
 DYNSEC_JSON="/etc/mosquitto/dynamic-security.json"
 CONF="/etc/mosquitto/conf.d/nrbridge.conf"
 CERTDIR="/etc/mosquitto/certs"
-CTRL="mosquitto_ctrl -h 127.0.0.1 -p 1883 -u ${ADMIN_USER}"
 
 [[ $EUID -eq 0 ]] || { echo "run as root"; exit 1; }
 
@@ -42,6 +41,12 @@ if [[ ! -f "$DYNSEC_JSON" ]]; then
   chown mosquitto:mosquitto "$DYNSEC_JSON"; chmod 640 "$DYNSEC_JSON"
 fi
 
+# Capture the admin password ONCE so the role commands below don't prompt for each one.
+# Fresh run: enter the password you just set. Re-run: enter that same password.
+read -rsp ">> Enter the '${ADMIN_USER}' password (for role setup): " ADMIN_PW; echo
+[[ -n "$ADMIN_PW" ]] || { echo "empty password — aborting"; exit 1; }
+ctrl() { mosquitto_ctrl -h 127.0.0.1 -p 1883 -u "$ADMIN_USER" -P "$ADMIN_PW" "$@"; }
+
 echo ">> Writing $CONF"
 cat > "$CONF" <<CONF_EOF
 plugin ${PLUGIN}
@@ -65,14 +70,14 @@ command -v ufw >/dev/null && ufw allow 8883/tcp >/dev/null 2>&1 || true
 systemctl restart mosquitto; sleep 1
 
 echo ">> Creating roles..."
-$CTRL dynsec createRole student  2>/dev/null || echo "   (student role exists)"
-$CTRL dynsec addRoleACL student  publishClientSend    'devices/%u/#' allow || true
-$CTRL dynsec addRoleACL student  publishClientReceive 'devices/%u/#' allow || true
-$CTRL dynsec addRoleACL student  subscribePattern     'devices/%u/#' allow || true
-$CTRL dynsec createRole observer 2>/dev/null || echo "   (observer role exists)"
-$CTRL dynsec addRoleACL observer subscribePattern     'devices/#' allow || true
-$CTRL dynsec addRoleACL observer publishClientReceive 'devices/#' allow || true
-$CTRL dynsec addRoleACL observer publishClientSend    'devices/#' allow || true
+ctrl dynsec createRole student  2>/dev/null || echo "   (student role exists)"
+ctrl dynsec addRoleACL student  publishClientSend    'devices/%u/#' allow || true
+ctrl dynsec addRoleACL student  publishClientReceive 'devices/%u/#' allow || true
+ctrl dynsec addRoleACL student  subscribePattern     'devices/%u/#' allow || true
+ctrl dynsec createRole observer 2>/dev/null || echo "   (observer role exists)"
+ctrl dynsec addRoleACL observer subscribePattern     'devices/#' allow || true
+ctrl dynsec addRoleACL observer publishClientReceive 'devices/#' allow || true
+ctrl dynsec addRoleACL observer publishClientSend    'devices/#' allow || true
 
 echo ""
 echo "=================================================================="
