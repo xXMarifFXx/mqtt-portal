@@ -12,8 +12,11 @@
     var html = '<table><thead><tr><th>Device (username)</th><th>Status</th><th>Since</th></tr></thead><tbody>';
     list.forEach(function (d) {
       var on = d.status === 'online';
+      var badge = d.disabled ? '<span class="badge warn">🚫 turned off</span>'
+        : on ? '<span class="badge on">🟢 online</span>'
+        : '<span class="badge err">🔴 ' + esc(d.status) + '</span>';
       html += '<tr><td><code>' + esc(d.username) + '</code></td>'
-        + '<td><span class="badge ' + (on ? 'on' : 'err') + '">' + (on ? '🟢 online' : '🔴 ' + esc(d.status)) + '</span></td>'
+        + '<td>' + badge + '</td>'
         + '<td class="muted">' + (d.at ? new Date(d.at).toLocaleString() : '—') + '</td></tr>';
     });
     box.innerHTML = html + '</tbody></table>';

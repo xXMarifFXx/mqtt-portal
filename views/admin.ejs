@@ -23,11 +23,11 @@
     <p class="sub">No student accounts yet. Add one below, or share the registration link + a class code.</p>
   <% } else { %>
   <table>
-    <thead><tr><th>Username</th><th>Name</th><th>Created</th><th>Reset password</th><th></th></tr></thead>
+    <thead><tr><th>Username</th><th>Name</th><th>Created</th><th>Reset password</th><th>On/off</th><th></th></tr></thead>
     <tbody>
     <% rows.forEach(function(r){ %>
       <tr>
-        <td><code><%= r.username %></code></td>
+        <td><code><%= r.username %></code><% if (r.disabled) { %> <span class="muted">(off)</span><% } %></td>
         <td><%= r.displayName || '—' %></td>
         <td class="muted"><%= r.createdAt ? r.createdAt.slice(0,10) : '—' %></td>
         <td>
@@ -36,6 +36,17 @@
             <input name="password" type="text" placeholder="new password" minlength="8" required>
             <button>Reset</button>
           </form>
+        </td>
+        <td>
+          <% if (r.disabled) { %>
+            <form method="post" action="/admin/enable">
+              <input type="hidden" name="username" value="<%= r.username %>"><button>Turn on</button>
+            </form>
+          <% } else { %>
+            <form method="post" action="/admin/disable" data-confirm="Turn off <%= r.username %>? Their board is forced offline until you turn it back on.">
+              <input type="hidden" name="username" value="<%= r.username %>"><button class="ghost">Turn off</button>
+            </form>
+          <% } %>
         </td>
         <td>
           <form method="post" action="/admin/delete" data-confirm="Delete <%= r.username %>?">

@@ -168,8 +168,23 @@ app.post('/admin/code/delete', requireAdmin, (req, res) => {
   res.redirect('/admin?ok=' + encodeURIComponent('Removed class code'));
 });
 
-// Live device presence (polled by the admin page)
-app.get('/admin/devices.json', requireAdmin, (req, res) => res.json({ devices: monitor.devices() }));
+// Turn a student's board off (force-disconnect + block reconnect) or back on.
+app.post('/admin/disable', requireAdmin, async (req, res) => {
+  const u = String(req.body.username || '');
+  if (!V.validUsername(u)) return res.redirect('/admin?error=' + encodeURIComponent('Invalid username.'));
+  try { await dynsec.disableStudent(u); store.setDisabled(u, true); res.redirect('/admin?ok=' + encodeURIComponent('Turned off ' + u + ' (board forced offline)')); }
+  catch (e) { console.error('[disable] broker error:', e.message); res.redirect('/admin?error=' + encodeURIComponent('Could not turn off — check the broker.')); }
+});
+app.post('/admin/enable', requireAdmin, async (req, res) => {
+  const u = String(req.body.username || '');
+  if (!V.validUsername(u)) return res.redirect('/admin?error=' + encodeURIComponent('Invalid username.'));
+  try { await dynsec.enableStudent(u); store.setDisabled(u, false); res.redirect('/admin?ok=' + encodeURIComponent('Turned on ' + u)); }
+  catch (e) { console.error('[enable] broker error:', e.message); res.redirect('/admin?error=' + encodeURIComponent('Could not turn on — check the broker.')); }
+});
+
+// Live device presence (polled by the admin page); merges the on/off state.
+app.get('/admin/devices.json', requireAdmin, (req, res) =>
+  res.json({ devices: monitor.devices().map((d) => ({ ...d, disabled: !!store.meta(d.username).disabled })) }));
 
 app.post('/admin/reset', requireAdmin, async (req, res) => {
   const u = String(req.body.username || '');

@@ -22,6 +22,11 @@ No new P0/P1/P2.
   online/offline — no secrets. The admin page polls it every 4 s.
 - Console `reconnectPeriod` set to 3 s so a dropped monitoring tab recovers; bad-credential
   connections are still ended in `on('error')`, so no auth-retry loop.
+
+## v0.5.0 addendum — admin turn device on/off
+- `/admin/disable` and `/admin/enable` are **admin-gated** and validate the username; they call
+  Mosquitto dynsec `disableClient`/`enableClient` (force-disconnect + block/allow reconnect) and
+  record the state in `store`. No secrets exposed; state is a boolean per username.
 No new P0/P1/P2.
 
 Profile: **public web app** · Node.js/Express + EJS, server-rendered, session auth ·
