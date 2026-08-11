@@ -1,6 +1,6 @@
 {
   "name": "mqtt-portal",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Class-code self-registration + admin panel for a Mosquitto broker (Dynamic Security).",
   "main": "server.js",
   "scripts": {
@@ -18,6 +18,7 @@
     "express": "^4.19.2",
     "express-rate-limit": "^7.4.0",
     "express-session": "^1.18.0",
-    "helmet": "^7.1.0"
+    "helmet": "^7.1.0",
+    "mqtt": "^5.10.1"
   }
 }

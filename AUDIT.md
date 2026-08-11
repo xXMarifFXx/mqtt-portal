@@ -14,6 +14,16 @@ New surface reviewed:
   is bound by the same per-student `devices/%u/#` scoping. No new server secrets.
 No new P0/P1/P2.
 
+## v0.4.0 addendum — admin "Live devices" + console auto-reconnect
+- The portal keeps one **server-side** MQTT connection to the local broker (`lib/monitor.js`)
+  as `dynsec-admin` (creds stay server-side), subscribing to `devices/+/status` to track
+  presence. It grants `dynsec-admin` the read-only `observer` role at startup (idempotent).
+- `/admin/devices.json` is **admin-gated** (`requireAdmin`) and returns only usernames +
+  online/offline — no secrets. The admin page polls it every 4 s.
+- Console `reconnectPeriod` set to 3 s so a dropped monitoring tab recovers; bad-credential
+  connections are still ended in `on('error')`, so no auth-retry loop.
+No new P0/P1/P2.
+
 Profile: **public web app** · Node.js/Express + EJS, server-rendered, session auth ·
 handles **credentials** (student broker passwords in transit, admin password hashed, class
 code) · minimal PII (optional display name) · exposure: **public internet** (self-service

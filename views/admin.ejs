@@ -12,6 +12,11 @@
   <% if (ok)  { %><div class="ok inline"><%= ok %></div><% } %>
   <% if (error) { %><div class="err"><%= error %></div><% } %>
 
+  <!-- ===== Live devices ===== -->
+  <h3 class="sectionhead">Live devices</h3>
+  <p class="sub">Which students' boards are connected right now (auto-refreshes every few seconds).</p>
+  <div id="devices"><em class="muted">Loading…</em></div>
+
   <!-- ===== Students ===== -->
   <h3 class="sectionhead">Students <span class="count"><%= rows.length %></span></h3>
   <% if (rows.length === 0) { %>
@@ -89,4 +94,5 @@
   </div>
 </main>
 <script src="/static/confirm.js"></script>
+<script src="/static/devices.js"></script>
 </body></html>

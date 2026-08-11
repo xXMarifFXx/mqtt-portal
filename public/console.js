@@ -51,7 +51,7 @@
       username: username,
       password: password,
       connectTimeout: 8000,
-      reconnectPeriod: 0,          // manual — don't hammer the broker on bad creds
+      reconnectPeriod: 3000,       // auto-reconnect if the link drops (bad creds are ended in on('error'))
       clientId: 'console-' + Math.floor(Math.random() * 1e6),
     });
 

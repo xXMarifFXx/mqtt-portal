@@ -18,6 +18,7 @@ const V = require('./lib/validate');
 const dynsec = require('./lib/dynsec');
 const store = require('./lib/store');
 const codes = require('./lib/codes');
+const monitor = require('./lib/monitor');
 
 const BROKER_HOST = process.env.PUBLIC_BROKER_HOST || 'your-broker.example.com';
 const BROKER_PORT = process.env.PUBLIC_BROKER_PORT || '8883';        // MQTT over TLS (devices)
@@ -167,6 +168,9 @@ app.post('/admin/code/delete', requireAdmin, (req, res) => {
   res.redirect('/admin?ok=' + encodeURIComponent('Removed class code'));
 });
 
+// Live device presence (polled by the admin page)
+app.get('/admin/devices.json', requireAdmin, (req, res) => res.json({ devices: monitor.devices() }));
+
 app.post('/admin/reset', requireAdmin, async (req, res) => {
   const u = String(req.body.username || '');
   const p = String(req.body.password || '');
@@ -188,5 +192,6 @@ const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
 if (require.main === module) {
   app.listen(PORT, HOST, () => console.log(`mqtt-portal on http://${HOST}:${PORT} (dynsec mode: ${dynsec.cfg().mode})`));
+  monitor.start().catch((e) => console.error('[monitor] start failed:', e.message));
 }
 module.exports = app;
