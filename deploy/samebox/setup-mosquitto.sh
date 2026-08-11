@@ -20,11 +20,16 @@ CTRL="mosquitto_ctrl -h 127.0.0.1 -p 1883 -u ${ADMIN_USER}"
 
 echo ">> Installing mosquitto..."
 export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=a
 apt-get update -qq && apt-get install -y -qq mosquitto mosquitto-clients ufw
 
+# mosquitto is now installed (so the 'mosquitto' user exists) — pull in Caddy's cert.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+echo ">> Syncing Caddy's TLS cert into mosquitto..."
+bash "$SCRIPT_DIR/sync-caddy-cert.sh" || true
 [[ -f "$CERTDIR/fullchain.pem" ]] || {
-  echo "ERROR: $CERTDIR/fullchain.pem missing."
-  echo "       Run deploy/samebox/sync-caddy-cert.sh first (after Caddy has the cert)."
+  echo "ERROR: cert still missing after sync — has Caddy issued mqtt.mariffb.my yet?"
+  echo "       Check:  sudo find /var/lib/caddy -name 'mqtt.mariffb.my.crt'"
   exit 1; }
 
 PLUGIN="$(find /usr/lib -name 'mosquitto_dynamic_security.so' 2>/dev/null | head -n1 || true)"

@@ -43,10 +43,10 @@ Wait ~30 s (Caddy fetches the cert; visiting the URL 502s until the app is up �
 
 ## 5. Mosquitto + Dynamic Security  ⏸️ CHECKPOINT
 ```bash
-sudo bash /opt/mqtt-portal/deploy/samebox/sync-caddy-cert.sh
 sudo bash /opt/mqtt-portal/deploy/samebox/setup-mosquitto.sh
 ```
-Sets a `dynsec-admin` password (**write it down**). **Paste me both outputs** before step 6.
+Installs mosquitto, pulls in Caddy's cert, and sets a `dynsec-admin` password
+(**write it down**). **Paste me the output** before step 6.
 
 ## 6. Keep the cert fresh, install + run the portal
 ```bash

@@ -19,7 +19,8 @@ if [[ -z "$CRT" || -z "$KEY" ]]; then
 fi
 
 mkdir -p "$DEST"
-install -o mosquitto -g mosquitto -m 640 "$CRT" "$DEST/fullchain.pem"
-install -o mosquitto -g mosquitto -m 640 "$KEY" "$DEST/privkey.pem"
+if id -u mosquitto >/dev/null 2>&1; then OWN=(-o mosquitto -g mosquitto); else echo "note: 'mosquitto' user not present yet; copying as root"; OWN=(); fi
+install "${OWN[@]}" -m 640 "$CRT" "$DEST/fullchain.pem"
+install "${OWN[@]}" -m 640 "$KEY" "$DEST/privkey.pem"
 systemctl reload mosquitto 2>/dev/null || systemctl restart mosquitto 2>/dev/null || true
 echo "Synced Caddy cert for ${DOMAIN} -> ${DEST} and reloaded mosquitto."

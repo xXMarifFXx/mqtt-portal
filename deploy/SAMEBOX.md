@@ -24,13 +24,12 @@ sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy
 Caddy will obtain the Let's Encrypt cert for `mqtt.mariffb.my` within ~30 s. (The portal
 isn't up yet, so it'll 502 for now — that's fine; the cert is what we need.)
 
-### 2. Sync Caddy's cert to Mosquitto, then set up Mosquitto
+### 2. Set up Mosquitto (installs it, syncs Caddy's cert, adds dynsec)
 ```bash
-sudo bash /opt/mqtt-portal/deploy/samebox/sync-caddy-cert.sh
 sudo bash /opt/mqtt-portal/deploy/samebox/setup-mosquitto.sh
 ```
-The second script prompts you to set the **`dynsec-admin` password — write it down.**
-👉 **Paste me the full output of both** — this is the part I couldn't test.
+Prompts you to set the **`dynsec-admin` password — write it down.**
+👉 **Paste me the full output** — this is the part I couldn't test.
 
 ### 3. Keep the cert fresh automatically (follows renewals)
 ```bash
