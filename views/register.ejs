@@ -29,6 +29,8 @@
       .secure()                              // TLS
       .login("<%= done.username %>", "YOUR_PASSWORD");
 bridge.begin("<%= done.username %>");        // your topics: devices/<%= done.username %>/…</pre>
+    <small class="muted">Note: <code>.broker("<%= broker.host %>")</code> is the host only —
+      don't add <code>/mqtt</code> (that path is just for the browser test console).</small>
 
     <h3 class="sectionhead">Quick test from a terminal <button class="copybtn" data-copy="#sub">Copy</button></h3>
 <pre id="sub">mosquitto_sub -h <%= broker.host %> -p <%= broker.port %> --capath /etc/ssl/certs \

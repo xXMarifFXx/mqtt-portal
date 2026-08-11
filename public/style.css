@@ -57,3 +57,5 @@ th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04
 .addrow{display:flex;flex-wrap:wrap;gap:8px}
 .addrow input{margin-top:0;flex:1 1 150px;min-width:120px}
 .addrow button{white-space:nowrap}
+.devrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f6f8fb;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:0 0 18px;font-size:14px}
+.devrow .muted{font-size:12px}

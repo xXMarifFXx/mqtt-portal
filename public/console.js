@@ -8,8 +8,11 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var statusEl = $('status');
+  var devEl = $('devstatus');
+  var myUser = '';
 
   function setStatus(text, cls) { statusEl.textContent = text; statusEl.className = 'badge ' + cls; }
+  function setDev(text, cls) { if (devEl) { devEl.textContent = text; devEl.className = 'badge ' + cls; } }
   function enable(on) { $('subBtn').disabled = !on; $('pubBtn').disabled = !on; }
 
   // Prefill topics from the username
@@ -39,7 +42,9 @@
     var url = $('wss').value.trim();
     var username = $('user').value.trim();
     var password = $('pass').value;
+    myUser = username;
     setStatus('connecting…', 'warn');
+    setDev('— waiting…', 'off');
     enable(false);
 
     client = mqtt.connect(url, {
@@ -50,15 +55,27 @@
       clientId: 'console-' + Math.floor(Math.random() * 1e6),
     });
 
-    client.on('connect', function () { setStatus('connected', 'on'); enable(true); });
+    client.on('connect', function () {
+      setStatus('connected', 'on'); enable(true);
+      // Auto-watch this student's whole namespace so their device shows up immediately.
+      if (myUser) client.subscribe('devices/' + myUser + '/#');
+    });
     client.on('reconnect', function () { setStatus('reconnecting…', 'warn'); });
-    client.on('close', function () { setStatus('disconnected', 'off'); enable(false); });
+    client.on('close', function () { setStatus('disconnected', 'off'); enable(false); setDev('— (not connected to broker)', 'off'); });
     client.on('error', function (e) {
       setStatus('error: ' + (e && e.message ? e.message : 'failed'), 'err');
       enable(false);
       if (client) { client.end(true); client = null; }
     });
-    client.on('message', function (topic, payload) { log(topic, payload.toString()); });
+    client.on('message', function (topic, payload) {
+      var msg = payload.toString();
+      // The library publishes devices/<user>/status = online/offline (retained).
+      if (myUser && topic === 'devices/' + myUser + '/status') {
+        if (msg === 'online') setDev('🟢 device online', 'on');
+        else setDev('🔴 device offline', 'err');
+      }
+      log(topic, msg);
+    });
   });
 
   $('subBtn').addEventListener('click', function () {
