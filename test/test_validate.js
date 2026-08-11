@@ -37,10 +37,16 @@ t('dynsec createClient args', () => {
   assert.deepStrictEqual(dynsec.args.createClient(c, 'ada', 'pw'),
     ['-h', 'h', '-p', '1883', '-u', 'a', '-P', 'p', 'dynsec', 'createClient', 'ada', '-p', 'pw']);
 });
-t('dynsec addClientRole args', () => {
-  const c = { host: 'h', port: '1883', admin: 'a', pass: 'p', role: 'student', mode: 'real' };
-  assert.deepStrictEqual(dynsec.args.addClientRole(c, 'ada'),
-    ['-h', 'h', '-p', '1883', '-u', 'a', '-P', 'p', 'dynsec', 'addClientRole', 'ada', 'student']);
+t('dynsec per-user role name', () => { assert.strictEqual(dynsec.roleFor('ada'), 'ns-ada'); assert.strictEqual(dynsec.nsFor('ada'), 'devices/ada/#'); });
+t('dynsec addClientRole args (explicit role)', () => {
+  const c = { host: 'h', port: '1883', admin: 'a', pass: 'p', mode: 'real' };
+  assert.deepStrictEqual(dynsec.args.addClientRole(c, 'ada', 'ns-ada'),
+    ['-h', 'h', '-p', '1883', '-u', 'a', '-P', 'p', 'dynsec', 'addClientRole', 'ada', 'ns-ada']);
+});
+t('dynsec addRoleACL args', () => {
+  const c = { host: 'h', port: '1883', admin: 'a', pass: 'p', mode: 'real' };
+  assert.deepStrictEqual(dynsec.args.addRoleACL(c, 'ns-ada', 'subscribePattern', 'devices/ada/#'),
+    ['-h', 'h', '-p', '1883', '-u', 'a', '-P', 'p', 'dynsec', 'addRoleACL', 'ns-ada', 'subscribePattern', 'devices/ada/#', 'allow']);
 });
 t('parseClients handles JSON', () => {
   assert.deepStrictEqual(dynsec.parseClients('{"clients":[{"username":"ada"},{"username":"bob"}]}'), ['ada', 'bob']);
