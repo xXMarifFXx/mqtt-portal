@@ -7,7 +7,8 @@ Type=simple
 # Adjust User and paths to where you deployed the app:
 User=mqttportal
 WorkingDirectory=/opt/mqtt-portal
-EnvironmentFile=/opt/mqtt-portal/.env
+# .env is loaded by the app itself (dotenv), which correctly strips inline
+# comments — so we deliberately do NOT use systemd's EnvironmentFile here.
 ExecStart=/usr/bin/node server.js
 Restart=on-failure
 RestartSec=3
