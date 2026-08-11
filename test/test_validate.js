@@ -52,5 +52,24 @@ t('parseClients handles JSON', () => {
   assert.deepStrictEqual(dynsec.parseClients('{"clients":[{"username":"ada"},{"username":"bob"}]}'), ['ada', 'bob']);
 });
 
+// --- class codes store ---
+t('class codes add / remove / isValid', () => {
+  const fs = require('fs');
+  process.env.CODES_FILE = '/tmp/nb_codes_' + process.pid + '.json';
+  process.env.CLASS_CODE = '';
+  fs.rmSync(process.env.CODES_FILE, { force: true });
+  delete require.cache[require.resolve('../lib/codes')];
+  const codes = require('../lib/codes');
+  assert.deepStrictEqual(codes.list(), []);
+  assert(codes.add('spring2026'));
+  assert(!codes.add('spring2026'));                // duplicate rejected
+  assert(!codes.add('xx'));                         // too short
+  assert(codes.isValid('spring2026'));
+  assert(!codes.isValid('nope'));
+  codes.remove('spring2026');
+  assert(!codes.isValid('spring2026'));
+  fs.rmSync(process.env.CODES_FILE, { force: true });
+});
+
 console.log(`\n${n - fail}/${n} passed`);
 process.exit(fail ? 1 : 0);

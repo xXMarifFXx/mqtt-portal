@@ -17,6 +17,7 @@ const path = require('path');
 const V = require('./lib/validate');
 const dynsec = require('./lib/dynsec');
 const store = require('./lib/store');
+const codes = require('./lib/codes');
 
 const BROKER_HOST = process.env.PUBLIC_BROKER_HOST || 'your-broker.example.com';
 const BROKER_PORT = process.env.PUBLIC_BROKER_PORT || '8883';        // MQTT over TLS (devices)
@@ -87,7 +88,7 @@ app.post('/register', regLimiter, async (req, res) => {
   const code = String(req.body.classcode || '');
   const err = (m) => res.status(400).render('register', { error: m, done: null, broker });
 
-  if (!CLASS_CODE || !V.secretEquals(code, CLASS_CODE)) return err('Wrong or missing class code.');
+  if (!codes.isValid(code)) return err('Wrong or missing class code.');
   if (!V.validUsername(username)) return err('Username: start with a letter, 3–20 chars of a–z, 0–9, _ or -, and not a reserved word.');
   if (!V.validPassword(password)) return err('Password must be at least 8 characters.');
 
@@ -127,13 +128,43 @@ app.post('/login', loginLimiter, (req, res) => {
 app.post('/logout', (req, res) => req.session.destroy(() => res.redirect('/login')));
 
 app.get('/admin', requireAdmin, async (req, res) => {
+  const codeList = codes.list();
   try {
     const users = await dynsec.listStudents();
     const rows = users.map((u) => ({ username: u, ...store.meta(u) }));
-    res.render('admin', { rows, error: req.query.error || null, ok: req.query.ok || null });
+    res.render('admin', { rows, codes: codeList, broker, error: req.query.error || null, ok: req.query.ok || null });
   } catch (e) {
-    res.render('admin', { rows: [], error: 'Cannot reach the broker: ' + e.message, ok: null });
+    res.render('admin', { rows: [], codes: codeList, broker, error: 'Cannot reach the broker: ' + e.message, ok: null });
   }
+});
+
+// Admin: manually create a student account
+app.post('/admin/student/add', requireAdmin, async (req, res) => {
+  const u = String(req.body.username || '').toLowerCase().trim();
+  const p = String(req.body.password || '');
+  const display = V.cleanDisplayName(req.body.display);
+  if (!V.validUsername(u)) return res.redirect('/admin?error=' + encodeURIComponent('Invalid username (start with a letter, 3–20 of a–z 0–9 _ -, not reserved).'));
+  if (!V.validPassword(p)) return res.redirect('/admin?error=' + encodeURIComponent('Password must be at least 8 characters (no leading "-").'));
+  try {
+    await dynsec.createStudent(u, p);
+    store.record(u, display, new Date().toISOString());
+    res.redirect('/admin?ok=' + encodeURIComponent('Created ' + u));
+  } catch (e) {
+    const msg = /exist/i.test(e.message) ? 'That username is already taken.' : 'Could not create the account — check the broker.';
+    if (!/exist/i.test(e.message)) console.error('[add] broker error:', e.message);
+    res.redirect('/admin?error=' + encodeURIComponent(msg));
+  }
+});
+
+// Admin: manage class codes
+app.post('/admin/code/add', requireAdmin, (req, res) => {
+  const c = String(req.body.code || '').trim();
+  const ok = codes.add(c);
+  res.redirect('/admin?' + (ok ? 'ok=' + encodeURIComponent('Added class code') : 'error=' + encodeURIComponent('Invalid or duplicate code (3–64 chars).')));
+});
+app.post('/admin/code/delete', requireAdmin, (req, res) => {
+  codes.remove(String(req.body.code || ''));
+  res.redirect('/admin?ok=' + encodeURIComponent('Removed class code'));
 });
 
 app.post('/admin/reset', requireAdmin, async (req, res) => {

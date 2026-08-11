@@ -6,14 +6,16 @@
 </head><body>
 <main class="card wide">
   <div class="row spread">
-    <h1>Students <span class="count"><%= rows.length %></span></h1>
+    <h1>Admin</h1>
     <form method="post" action="/logout"><button class="ghost">Log out</button></form>
   </div>
   <% if (ok)  { %><div class="ok inline"><%= ok %></div><% } %>
   <% if (error) { %><div class="err"><%= error %></div><% } %>
 
+  <!-- ===== Students ===== -->
+  <h3 class="sectionhead">Students <span class="count"><%= rows.length %></span></h3>
   <% if (rows.length === 0) { %>
-    <p class="sub">No student accounts yet. Share the registration link + class code with your class.</p>
+    <p class="sub">No student accounts yet. Add one below, or share the registration link + a class code.</p>
   <% } else { %>
   <table>
     <thead><tr><th>Username</th><th>Name</th><th>Created</th><th>Reset password</th><th></th></tr></thead>
@@ -41,6 +43,50 @@
     </tbody>
   </table>
   <% } %>
+
+  <!-- Add a student manually -->
+  <div class="panel">
+    <b>Add a student</b>
+    <form method="post" action="/admin/student/add" class="addrow" autocomplete="off">
+      <input name="username" placeholder="username (e.g. ada)" pattern="[a-zA-Z][a-zA-Z0-9_\-]{2,19}" required>
+      <input name="display" placeholder="name (optional)" maxlength="60">
+      <input name="password" type="text" placeholder="password (min 8)" minlength="8" required>
+      <button>Create</button>
+    </form>
+    <small class="muted">Scoped to <code>devices/&lt;username&gt;/#</code>, same as self-registration.</small>
+  </div>
+
+  <!-- ===== Class codes ===== -->
+  <h3 class="sectionhead">Class codes <span class="count"><%= codes.length %></span></h3>
+  <p class="sub">Students must enter one of these to self-register. Rotate them per term.</p>
+  <% if (codes.length === 0) { %>
+    <div class="err">No active codes — self-registration is closed until you add one.</div>
+  <% } else { %>
+  <table>
+    <thead><tr><th>Code</th><th>Added</th><th></th></tr></thead>
+    <tbody>
+    <% codes.forEach(function(c){ %>
+      <tr>
+        <td><code><%= c.code %></code></td>
+        <td class="muted"><%= c.addedAt ? c.addedAt.slice(0,10) : '—' %></td>
+        <td>
+          <form method="post" action="/admin/code/delete" data-confirm="Remove code <%= c.code %>?">
+            <input type="hidden" name="code" value="<%= c.code %>">
+            <button class="danger">Remove</button>
+          </form>
+        </td>
+      </tr>
+    <% }); %>
+    </tbody>
+  </table>
+  <% } %>
+  <div class="panel">
+    <b>Add a class code</b>
+    <form method="post" action="/admin/code/add" class="addrow">
+      <input name="code" placeholder="new class code (3–64 chars)" minlength="3" maxlength="64" required>
+      <button>Add code</button>
+    </form>
+  </div>
 </main>
 <script src="/static/confirm.js"></script>
 </body></html>

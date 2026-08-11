@@ -52,3 +52,8 @@ th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04
 .messages{margin-top:10px;height:220px;overflow:auto;background:#0f1720;border-radius:9px;padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#dbe7ff}
 .messages .msg{padding:2px 0;border-bottom:1px solid #1e2a38;word-break:break-all}
 .messages .mt{color:#7c8ba1}.messages .mtopic{color:#67d3a0}.messages .mpay{color:#dbe7ff}
+.panel{background:#f6f8fb;border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0 22px}
+.panel b{display:block;margin-bottom:8px;font-size:14px}
+.addrow{display:flex;flex-wrap:wrap;gap:8px}
+.addrow input{margin-top:0;flex:1 1 150px;min-width:120px}
+.addrow button{white-space:nowrap}
