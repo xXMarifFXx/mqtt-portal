@@ -9,16 +9,22 @@
   var $ = function (id) { return document.getElementById(id); };
   var statusEl = $('status');
   var devEl = $('devstatus');
+  var nrEl = $('nrstatus');
   var myUser = '';
 
   function setStatus(text, cls) { statusEl.textContent = text; statusEl.className = 'badge ' + cls; }
   function setDev(text, cls) { if (devEl) { devEl.textContent = text; devEl.className = 'badge ' + cls; } }
+  function setNr(text, cls) { if (nrEl) { nrEl.textContent = text; nrEl.className = 'badge ' + cls; } }
   function enable(on) { $('subBtn').disabled = !on; $('pubBtn').disabled = !on; }
 
   // Prefill topics from the username
   function prefill(u) {
     if (u && !$('subTopic').value) $('subTopic').value = 'devices/' + u + '/#';
     if (u && !$('pubTopic').value) $('pubTopic').value = 'devices/' + u + '/test';
+    $('settings-user').textContent = u || 'enter username above';
+    $('settings-topic').textContent = u ? 'devices/' + u + '/#' : 'devices/<username>/#';
+    $('settings-device-status').textContent = u ? 'devices/' + u + '/status' : 'devices/<username>/status';
+    $('settings-nr-status').textContent = u ? 'devices/' + u + '/nodered/status' : 'devices/<username>/nodered/status';
   }
   prefill(user0);
   $('user').addEventListener('change', function () { prefill($('user').value.trim()); });
@@ -45,6 +51,7 @@
     myUser = username;
     setStatus('connecting…', 'warn');
     setDev('— waiting…', 'off');
+    setNr('— waiting…', 'off');
     enable(false);
 
     client = mqtt.connect(url, {
@@ -61,7 +68,7 @@
       if (myUser) client.subscribe('devices/' + myUser + '/#');
     });
     client.on('reconnect', function () { setStatus('reconnecting…', 'warn'); });
-    client.on('close', function () { setStatus('disconnected', 'off'); enable(false); setDev('— (not connected to broker)', 'off'); });
+    client.on('close', function () { setStatus('disconnected', 'off'); enable(false); setDev('— (not connected to broker)', 'off'); setNr('— (not connected to broker)', 'off'); });
     client.on('error', function (e) {
       setStatus('error: ' + (e && e.message ? e.message : 'failed'), 'err');
       enable(false);
@@ -74,6 +81,10 @@
       if (myUser && topic === 'devices/' + myUser + '/status') {
         if (msg === 'online') setDev('🟢 device online', 'on');
         else setDev('🔴 device offline', 'err');
+      }
+      if (myUser && topic === 'devices/' + myUser + '/nodered/status') {
+        if (msg.toLowerCase() === 'online') setNr('🟢 Node-RED online', 'on');
+        else setNr('🔴 Node-RED offline', 'err');
       }
       log(topic, msg);
     });

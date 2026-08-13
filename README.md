@@ -33,6 +33,12 @@ Student browser ──HTTPS 443──> nginx ──> mqtt-portal (Node, localhos
   `mosquitto_ctrl` calls in `lib/dynsec.js` (flags/paths vary by Mosquitto version — that's the
   one file to tweak), and the **wss test console** end-to-end (needs the 8084 listener live).
 
+The console keeps the student's broker, TLS, username, namespace, and presence
+topics visible beneath the controls. ESP32 presence uses
+`devices/<username>/status`; Node-RED presence uses the retained
+`devices/<username>/nodered/status` topic with `online` as its birth message and
+`offline` as its close/will message.
+
 ## Deploy
 
 > **Already running Caddy on this box** (e.g. alongside sni-eng.com)? Use

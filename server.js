@@ -140,7 +140,12 @@ app.post('/register', requireValidClassCode, async (req, res) => {
 
 // ---- browser MQTT test console (public; connects with the student's own creds) ----
 app.get('/console', (req, res) => {
-  res.render('console', { broker, prefill: String(req.query.u || '') });
+  const prefill = String(req.query.u || '').toLowerCase().trim();
+  res.render('console', {
+    broker,
+    prefill,
+    sketch: V.validUsername(prefill) ? snippets.portalSketch(broker, prefill) : '',
+  });
 });
 
 // ---- admin -----------------------------------------------------------------

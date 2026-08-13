@@ -25,6 +25,11 @@
     <span id="devstatus" class="badge off" role="status" aria-live="polite">— connect above to check</span>
     <span class="muted">— based on the retained <code>devices/&lt;you&gt;/status</code> your board publishes on connect.</span>
   </div>
+  <div class="devrow">
+    <b>Your Node-RED dashboard:</b>
+    <span id="nrstatus" class="badge off" role="status" aria-live="polite">— connect above to check</span>
+    <span class="muted">— based on retained <code>devices/&lt;you&gt;/nodered/status</code> presence.</span>
+  </div>
 
   <div class="grid2">
     <section>
@@ -46,8 +51,36 @@
         <code>devices/&lt;you&gt;/test</code> — you should see it arrive. That proves your MQTT is up.</p>
     </section>
   </div>
+
+  <section class="settingscard" aria-labelledby="settings-title">
+    <div class="row spread">
+      <h2 id="settings-title">Your MQTT settings</h2>
+      <button class="copybtn" data-copy="#mqtt-settings">Copy</button>
+    </div>
+    <p class="sub">Keep these details visible while configuring your ESP32 and Node-RED. Your password is the one you chose during registration.</p>
+    <table class="kv" id="mqtt-settings">
+      <tr><th>Broker host</th><td><code><%= broker.host %></code></td></tr>
+      <tr><th>Port</th><td><code><%= broker.port %></code> &nbsp;·&nbsp; MQTT over TLS</td></tr>
+      <tr><th>WebSocket</th><td><code><%= broker.wss %></code></td></tr>
+      <tr><th>Username</th><td><code id="settings-user"><%= prefill || 'enter username above' %></code></td></tr>
+      <tr><th>Your topics</th><td><code id="settings-topic"><%= prefill ? 'devices/' + prefill + '/#' : 'devices/&lt;username&gt;/#' %></code></td></tr>
+      <tr><th>ESP32 presence</th><td><code id="settings-device-status"><%= prefill ? 'devices/' + prefill + '/status' : 'devices/&lt;username&gt;/status' %></code></td></tr>
+      <tr><th>Node-RED presence</th><td><code id="settings-nr-status"><%= prefill ? 'devices/' + prefill + '/nodered/status' : 'devices/&lt;username&gt;/nodered/status' %></code></td></tr>
+    </table>
+    <div class="panel compact">
+      <b>Node-RED online indicator setup</b>
+      <p class="hint">In Node-RED's MQTT broker configuration, set a retained birth message of <code>online</code> and retained close/will message of <code>offline</code>, both on the Node-RED presence topic above.</p>
+    </div>
+    <% if (sketch) { %>
+      <h3 class="sectionhead">Arduino (N-R_ESP32 1.1.3+) <button class="copybtn" data-copy="#console-ino">Copy</button></h3>
+      <pre id="console-ino"><%= sketch %></pre>
+    <% } else { %>
+      <p class="hint">Open this page from your registration result, or enter your username above, to fill in your personal topic settings. The complete Arduino sketch is shown immediately after registration.</p>
+    <% } %>
+  </section>
   <footer><a href="/privacy">Privacy notice</a> · Do not publish personal or sensitive data.</footer>
 </main>
 <script src="/static/vendor/mqtt.min.js"></script>
 <script src="/static/console.js"></script>
+<script src="/static/copy.js"></script>
 </body></html>
