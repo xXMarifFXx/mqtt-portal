@@ -94,7 +94,9 @@ card, and can verify with the built-in test console. You manage them at `/admin`
   the internet sees only TLS 8883 and wss 8084.
 - `mosquitto_ctrl` passes passwords as CLI args (visible in `ps`). Fine for a single-admin class
   box; switch `lib/dynsec.js` to stdin/REPL mode to harden. Documented trade-off.
-- See [`AUDIT.md`](AUDIT.md) for the full security audit (verdict: GO).
+- See [`AUDIT.md`](AUDIT.md) for the current full-system audit and prioritized findings.
+- Encrypted backups, restore verification and automatic deployment rollback are documented
+  in [`deploy/recovery/README.md`](deploy/recovery/README.md).
 
 ## Local development
 ```bash

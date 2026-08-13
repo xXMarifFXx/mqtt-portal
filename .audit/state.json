@@ -1,0 +1,10 @@
+{
+  "lastAuditCommit": "f8439cae9b44ae259a1ea7696521e19219c14abb",
+  "lastFullAuditCommit": "f8439cae9b44ae259a1ea7696521e19219c14abb",
+  "auditDate": "2026-08-13",
+  "scope": "portal, Mosquitto/Caddy deployment, N-R_ESP32 and Node-RED interoperability",
+  "verdict": "NO-GO",
+  "open": { "P0": 1, "P1": 7, "P2": 12 },
+  "recoveryRemediation": "implemented and locally tested; VPS activation, off-box copy and restore drill pending",
+  "deviceLibraryCommit": "0be0a1661392b54c8b2213cf4e7a3d2f50c86e9c"
+}

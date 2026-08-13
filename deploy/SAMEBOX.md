@@ -63,6 +63,11 @@ open **/console**, Connect, and publish/subscribe to prove the whole chain.
 Only **8883** must be public (devices) — `setup-mosquitto.sh` opens it. 80/443 are already
 open for Caddy; 8083 and 1883 stay localhost-only.
 
+### 6. Install encrypted backups and deployment rollback
+
+Follow [`deploy/recovery/README.md`](recovery/README.md). Configure an rclone destination
+outside this VPS and store a separate copy of the encryption key before the first class.
+
 ### If step 2 errors
 The dynsec plugin path or a `mosquitto_ctrl` flag can vary by version — that's all isolated
 in `setup-mosquitto.sh` / `lib/dynsec.js`. Paste the output and I'll push a one-line fix.

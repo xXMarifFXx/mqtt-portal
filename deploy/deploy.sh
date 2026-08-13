@@ -1,23 +1,46 @@
 #!/usr/bin/env bash
-# One-command update for the MQTT portal (like the sni-eng.com deploy.sh).
-# Pulls the latest code, installs deps, restarts the service, health-checks.
-#   sudo bash /opt/mqtt-portal/deploy/deploy.sh
-set -euo pipefail
+# Safe in-place update: backup, deploy, verify, and automatically roll back code on failure.
+set -Eeuo pipefail
 
-cd /opt/mqtt-portal
+ROOT=/opt/mqtt-portal
+cd "$ROOT"
 
-echo "==> 1/4 Pulling latest code"
+[[ -z "$(git status --porcelain)" ]] || { echo "ERROR: deployment tree has local changes; aborting." >&2; exit 1; }
+previous_commit=$(git rev-parse HEAD)
+rollback_started=0
+
+rollback() {
+  rc=$?
+  [[ $rollback_started -eq 0 ]] || exit "$rc"
+  rollback_started=1
+  trap - ERR
+  set +e
+  echo "DEPLOY FAILED (exit $rc) — rolling application back to $previous_commit" >&2
+  git reset --hard "$previous_commit"
+  npm ci --omit=dev
+  systemctl restart mqtt-portal
+  if curl --retry 10 --retry-delay 1 --retry-connrefused -fsS http://127.0.0.1:3001/healthz >/dev/null; then
+    echo "Rollback succeeded; previous application is serving." >&2
+  else
+    echo "ROLLBACK FAILED — inspect: journalctl -u mqtt-portal -n 80 --no-pager" >&2
+  fi
+  exit "$rc"
+}
+trap rollback ERR
+
+echo "==> 1/5 Creating and verifying pre-deploy backup"
+"$ROOT/deploy/recovery/backup.sh"
+
+echo "==> 2/5 Pulling latest code"
 git pull --ff-only
 
-echo "==> 2/4 Installing dependencies"
+echo "==> 3/5 Installing locked production dependencies"
 npm ci --omit=dev
 
-echo "==> 3/4 Restarting the portal"
+echo "==> 4/5 Restarting the portal"
 systemctl restart mqtt-portal
-sleep 1
 
-echo -n "==> 4/4 Health check: "
-if curl -fs localhost:3001/healthz >/dev/null; then echo "OK ✓ portal is up"; else
-  echo "FAILED — check: journalctl -u mqtt-portal -n 40 --no-pager"; exit 1; fi
-
-echo "Done. https://mqtt.mariffb.my"
+echo "==> 5/5 Health check"
+curl --retry 10 --retry-delay 1 --retry-connrefused -fsS http://127.0.0.1:3001/healthz >/dev/null
+trap - ERR
+echo "Deploy succeeded: $(git rev-parse --short HEAD) — https://mqtt.mariffb.my"

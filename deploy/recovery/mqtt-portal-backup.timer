@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily encrypted MQTT portal backup
+
+[Timer]
+OnCalendar=*-*-* 03:20:00
+RandomizedDelaySec=20m
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+

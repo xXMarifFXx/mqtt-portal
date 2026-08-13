@@ -67,8 +67,13 @@ Expect `{"ok":true}`. Open **https://mqtt.mariffb.my**, register, and use **/con
 
 ## Updating later
 ```bash
-cd /opt/mqtt-portal && git pull && sudo npm ci --omit=dev && sudo systemctl restart mqtt-portal
+cd /opt/mqtt-portal && sudo bash deploy/deploy.sh
 ```
+
+The deploy command creates and verifies an encrypted state backup first and automatically
+rolls application code back if installation, restart or health checking fails. Complete the
+one-time off-box backup setup in [`deploy/recovery/README.md`](recovery/README.md) before
+relying on it for a class.
 
 ## Handy
 | Task | Command |

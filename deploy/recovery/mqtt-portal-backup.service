@@ -1,0 +1,11 @@
+[Unit]
+Description=Encrypted MQTT portal and Mosquitto state backup
+After=mosquitto.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mqtt-portal/deploy/recovery/backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+
