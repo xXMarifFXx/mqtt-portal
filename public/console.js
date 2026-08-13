@@ -51,7 +51,7 @@
       username: username,
       password: password,
       connectTimeout: 8000,
-      reconnectPeriod: 3000,       // auto-reconnect if the link drops (bad creds are ended in on('error'))
+      reconnectPeriod: 3000,
       clientId: 'console-' + Math.floor(Math.random() * 1e6),
     });
 
@@ -65,7 +65,8 @@
     client.on('error', function (e) {
       setStatus('error: ' + (e && e.message ? e.message : 'failed'), 'err');
       enable(false);
-      if (client) { client.end(true); client = null; }
+      // MQTT.js emits error before close/reconnect for temporary network faults.
+      // Keep this client alive so its configured reconnect loop can recover.
     });
     client.on('message', function (topic, payload) {
       var msg = payload.toString();
@@ -81,8 +82,9 @@
   $('subBtn').addEventListener('click', function () {
     var topic = $('subTopic').value.trim();
     if (!client || !topic) return;
-    client.subscribe(topic, function (err) {
-      log(err ? 'SUBSCRIBE FAILED' : 'subscribed', topic + (err ? ' — ' + err.message : ''));
+    client.subscribe(topic, function (err, granted) {
+      var denied = !err && granted && granted.some(function (g) { return g.qos === 128; });
+      log(err || denied ? 'SUBSCRIBE FAILED' : 'subscribed', topic + (err ? ' — ' + err.message : denied ? ' — broker denied access' : ''));
     });
   });
 

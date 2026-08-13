@@ -10,14 +10,14 @@
     <form method="post" action="/logout"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="ghost">Log out</button></form>
   </div>
   <% if (ok)  { %><div class="ok inline"><%= ok %></div><% } %>
-  <% if (error) { %><div class="err"><%= error %></div><% } %>
+  <% if (error) { %><div class="err" role="alert"><%= error %></div><% } %>
 
   <!-- ===== Live devices ===== -->
   <h3 class="sectionhead">Live devices</h3>
   <p class="sub">Which students' boards are connected right now (auto-refreshes every few seconds).</p>
   <% if (monitorHealth.ready) { %><div class="ok inline">Status monitor connected with its read-only account.</div>
   <% } else { %><div class="err">Status monitor is unavailable. Device presence may be stale; check <code>/readyz</code> and service logs.</div><% } %>
-  <div id="devices"><em class="muted">Loading…</em></div>
+  <div id="devices" aria-live="polite"><em class="muted">Loading…</em></div>
 
   <!-- ===== Students ===== -->
   <h3 class="sectionhead">Students <span class="count"><%= rows.length %></span></h3>
@@ -36,7 +36,7 @@
           <form method="post" action="/admin/reset" class="inlineform">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <input type="hidden" name="username" value="<%= r.username %>">
-            <input name="password" type="text" placeholder="new password" minlength="8" required>
+            <label class="sr-only" for="reset-<%= r.username %>">New password for <%= r.username %></label><input id="reset-<%= r.username %>" name="password" type="text" placeholder="new password" minlength="8" required>
             <button>Reset</button>
           </form>
         </td>
@@ -71,9 +71,9 @@
     <b>Add a student</b>
     <form method="post" action="/admin/student/add" class="addrow" autocomplete="off">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <input name="username" placeholder="username (e.g. ada)" pattern="[a-zA-Z][a-zA-Z0-9_\-]{2,19}" required>
-      <input name="display" placeholder="name (optional)" maxlength="60">
-      <input name="password" type="text" placeholder="password (min 8)" minlength="8" required>
+      <label class="sr-only" for="new-user">Username</label><input id="new-user" name="username" placeholder="username (e.g. ada)" pattern="[a-zA-Z][a-zA-Z0-9_\-]{2,19}" required>
+      <label class="sr-only" for="new-display">Student name</label><input id="new-display" name="display" placeholder="name (optional)" maxlength="60">
+      <label class="sr-only" for="new-password">Student password</label><input id="new-password" name="password" type="text" placeholder="password (min 8)" minlength="8" required>
       <button>Create</button>
     </form>
     <small class="muted">Scoped to <code>devices/&lt;username&gt;/#</code>, same as self-registration.</small>
@@ -113,7 +113,7 @@
     <b>Add a class code</b>
     <form method="post" action="/admin/code/add" class="addrow">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <input name="code" placeholder="new class code (3–64 chars)" minlength="3" maxlength="64" required>
+      <label class="sr-only" for="new-code">New class code</label><input id="new-code" name="code" placeholder="new class code (3–64 chars)" minlength="3" maxlength="64" required>
       <button>Add code</button>
     </form>
   </div>

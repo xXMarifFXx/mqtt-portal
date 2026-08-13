@@ -8,7 +8,7 @@
     "dev": "DYNSEC_MODE=mock COOKIE_SECURE=false node server.js",
     "hashpw": "node scripts/hashpw.js",
     "privacy:expired": "node scripts/purge-expired.js",
-    "test": "node test/test_validate.js && node test/test_dynsec.js && node test/test_config.js && node test/test_csrf.js && node test/test_session_store.js && node test/test_mosquitto_config.js && node test/test_privacy.js && node test/test_registration_limits.js && node test/test_http_security.js",
+    "test": "node test/test_validate.js && node test/test_dynsec.js && node test/test_config.js && node test/test_csrf.js && node test/test_session_store.js && node test/test_json_integrity.js && node test/test_mosquitto_config.js && node test/test_privacy.js && node test/test_registration_limits.js && node test/test_http_security.js",
     "test:recovery": "bash test/test_recovery.sh"
   },
   "engines": {

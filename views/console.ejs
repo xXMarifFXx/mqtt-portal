@@ -17,12 +17,12 @@
     <label>Username<input id="user" placeholder="ada" value="<%= prefill %>"></label>
     <label>Password<input id="pass" type="password" placeholder="your password"></label>
     <button id="connect">Connect</button>
-    <span id="status" class="badge off">disconnected</span>
+    <span id="status" class="badge off" role="status" aria-live="polite">disconnected</span>
   </div>
 
   <div class="devrow">
     <b>Your ESP32 device:</b>
-    <span id="devstatus" class="badge off">— connect above to check</span>
+    <span id="devstatus" class="badge off" role="status" aria-live="polite">— connect above to check</span>
     <span class="muted">— based on the retained <code>devices/&lt;you&gt;/status</code> your board publishes on connect.</span>
   </div>
 
@@ -30,16 +30,16 @@
     <section>
       <h3 class="sectionhead">Subscribe</h3>
       <div class="inlineform">
-        <input id="subTopic" placeholder="devices/ada/#">
+        <label class="sr-only" for="subTopic">Subscription topic</label><input id="subTopic" placeholder="devices/ada/#">
         <button id="subBtn" disabled>Subscribe</button>
       </div>
-      <div id="messages" class="messages"><em class="muted">Messages will appear here…</em></div>
+      <div id="messages" class="messages" role="log" aria-live="polite"><em class="muted">Messages will appear here…</em></div>
     </section>
     <section>
       <h3 class="sectionhead">Publish</h3>
       <div class="pubform">
-        <input id="pubTopic" placeholder="devices/ada/test">
-        <input id="pubPayload" placeholder='{"value":42} or hello'>
+        <label class="sr-only" for="pubTopic">Publish topic</label><input id="pubTopic" placeholder="devices/ada/test">
+        <label class="sr-only" for="pubPayload">Publish payload</label><input id="pubPayload" placeholder='{"value":42} or hello'>
         <button id="pubBtn" disabled>Publish</button>
       </div>
       <p class="hint">Tip: subscribe to <code>devices/&lt;you&gt;/#</code>, then publish to
