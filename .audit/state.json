@@ -12,5 +12,6 @@
   "classroomLimitRemediation": "implemented and integration tested with 25 registrations from one IP; live deploy pending",
   "brokerQuotaRemediation": "implemented from official Mosquitto directives; live 2.0.x config validation and load test pending",
   "privacyRemediation": "notice, acknowledgment, minimization, retention tooling and runbook implemented/tested; institutional approval and live configuration pending",
+  "step6Remediation": "dedicated read-only monitor, CSRF, durable sessions, visible monitor health and CI implemented/tested; live provisioning and CI run pending",
   "deviceLibraryCommit": "0be0a1661392b54c8b2213cf4e7a3d2f50c86e9c"
 }

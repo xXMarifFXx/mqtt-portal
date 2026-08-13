@@ -116,6 +116,15 @@ The test console needs a real wss broker; in mock dev the page renders but won't
   uses readiness, so a running but unusable broker integration cannot be reported as success.
 - Production startup rejects missing/placeholder broker settings, weak/missing session and
   admin configuration, a missing dynsec password, insecure cookies, or a non-WSS console URL.
+- The status monitor uses `MONITOR_USER`/`MONITOR_PASS`, a separate read-only Mosquitto
+  account. Never reuse `dynsec-admin`; production startup rejects that configuration.
+
+## Admin-session security
+
+- Admin sessions use an encrypted file-backed store under `data/sessions`, survive an
+  application restart, expire after one hour, and are excluded from backup/restore.
+- Every authenticated POST uses a session-bound synchronizer CSRF token. A missing or stale
+  token returns 403 and requires the administrator to reload the page.
 
 ## Classroom capacity and broker limits
 
@@ -145,3 +154,9 @@ The test console needs a real wss broker; in mock dev the page renders but won't
 - `npm run privacy:expired` is a non-mutating retention report. Follow
   [`deploy/privacy/README.md`](deploy/privacy/README.md) for backup, reviewed deletion,
   Node-RED cleanup and incident steps.
+
+## Continuous integration
+
+GitHub Actions runs portal tests, the encrypted recovery drill, syntax checks and `npm audit`
+on every push and pull request. The N-R_ESP32 repository separately compiles BasicTelemetry
+and MariffbPortal for generic ESP32, XIAO ESP32-C3 and XIAO ESP32-S3, plus host parser tests.

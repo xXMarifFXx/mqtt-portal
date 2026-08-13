@@ -7,7 +7,7 @@
 <main class="card wide">
   <div class="row spread">
     <h1>Admin</h1>
-    <form method="post" action="/logout"><button class="ghost">Log out</button></form>
+    <form method="post" action="/logout"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="ghost">Log out</button></form>
   </div>
   <% if (ok)  { %><div class="ok inline"><%= ok %></div><% } %>
   <% if (error) { %><div class="err"><%= error %></div><% } %>
@@ -15,6 +15,8 @@
   <!-- ===== Live devices ===== -->
   <h3 class="sectionhead">Live devices</h3>
   <p class="sub">Which students' boards are connected right now (auto-refreshes every few seconds).</p>
+  <% if (monitorHealth.ready) { %><div class="ok inline">Status monitor connected with its read-only account.</div>
+  <% } else { %><div class="err">Status monitor is unavailable. Device presence may be stale; check <code>/readyz</code> and service logs.</div><% } %>
   <div id="devices"><em class="muted">Loading…</em></div>
 
   <!-- ===== Students ===== -->
@@ -32,6 +34,7 @@
         <td class="muted"><%= r.createdAt ? r.createdAt.slice(0,10) : '—' %></td>
         <td>
           <form method="post" action="/admin/reset" class="inlineform">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <input type="hidden" name="username" value="<%= r.username %>">
             <input name="password" type="text" placeholder="new password" minlength="8" required>
             <button>Reset</button>
@@ -40,16 +43,19 @@
         <td>
           <% if (r.disabled) { %>
             <form method="post" action="/admin/enable">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <input type="hidden" name="username" value="<%= r.username %>"><button>Turn on</button>
             </form>
           <% } else { %>
             <form method="post" action="/admin/disable" data-confirm="Turn off <%= r.username %>? Their board is forced offline until you turn it back on.">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <input type="hidden" name="username" value="<%= r.username %>"><button class="ghost">Turn off</button>
             </form>
           <% } %>
         </td>
         <td>
           <form method="post" action="/admin/delete" data-confirm="Delete <%= r.username %>?">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <input type="hidden" name="username" value="<%= r.username %>">
             <button class="danger">Delete</button>
           </form>
@@ -64,6 +70,7 @@
   <div class="panel">
     <b>Add a student</b>
     <form method="post" action="/admin/student/add" class="addrow" autocomplete="off">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <input name="username" placeholder="username (e.g. ada)" pattern="[a-zA-Z][a-zA-Z0-9_\-]{2,19}" required>
       <input name="display" placeholder="name (optional)" maxlength="60">
       <input name="password" type="text" placeholder="password (min 8)" minlength="8" required>
@@ -92,6 +99,7 @@
         <td class="muted"><%= c.addedAt ? c.addedAt.slice(0,10) : '—' %></td>
         <td>
           <form method="post" action="/admin/code/delete" data-confirm="Remove code <%= c.code %>?">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <input type="hidden" name="code" value="<%= c.code %>">
             <button class="danger">Remove</button>
           </form>
@@ -104,6 +112,7 @@
   <div class="panel">
     <b>Add a class code</b>
     <form method="post" action="/admin/code/add" class="addrow">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <input name="code" placeholder="new class code (3–64 chars)" minlength="3" maxlength="64" required>
       <button>Add code</button>
     </form>

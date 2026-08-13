@@ -3,7 +3,7 @@
 #   - MQTT over TLS on 8883 (devices) using the Caddy-synced cert
 #   - plaintext WebSocket on 127.0.0.1:8083 (Caddy proxies wss://.../mqtt here)
 #   - plaintext control on 127.0.0.1:1883 (portal dynsec + Node-RED)
-#   - Dynamic Security plugin + %u-scoped 'student' role + 'observer' role
+#   - Dynamic Security plugin + per-student roles created by the portal + read-only monitor
 #
 # PREREQ: run deploy/samebox/sync-caddy-cert.sh FIRST (needs the Caddy cert present).
 # Usage:  sudo bash deploy/samebox/setup-mosquitto.sh
@@ -46,6 +46,8 @@ fi
 read -rsp ">> Enter the '${ADMIN_USER}' password (for role setup): " ADMIN_PW; echo
 [[ -n "$ADMIN_PW" ]] || { echo "empty password — aborting"; exit 1; }
 ctrl() { mosquitto_ctrl -h 127.0.0.1 -p 1883 -u "$ADMIN_USER" -P "$ADMIN_PW" "$@"; }
+read -rsp ">> Set a SEPARATE portal-monitor password (min 12 chars): " MONITOR_PW; echo
+[[ ${#MONITOR_PW} -ge 12 ]] || { echo "monitor password too short — aborting"; exit 1; }
 
 echo ">> Writing $CONF"
 cat > "$CONF" <<CONF_EOF
@@ -105,19 +107,26 @@ if ! ctrl dynsec listClients >/dev/null 2>&1; then
   exit 1
 fi
 
-echo ">> Creating roles..."
-ctrl dynsec createRole student  2>/dev/null || echo "   (student role exists)"
-ctrl dynsec addRoleACL student  publishClientSend    'devices/%u/#' allow || true
-ctrl dynsec addRoleACL student  publishClientReceive 'devices/%u/#' allow || true
-ctrl dynsec addRoleACL student  subscribePattern     'devices/%u/#' allow || true
+echo ">> Creating read-only monitor role..."
 ctrl dynsec createRole observer 2>/dev/null || echo "   (observer role exists)"
 ctrl dynsec addRoleACL observer subscribePattern     'devices/#' allow || true
 ctrl dynsec addRoleACL observer publishClientReceive 'devices/#' allow || true
-ctrl dynsec addRoleACL observer publishClientSend    'devices/#' allow || true
+# Remove the historical broad publish grant. The portal monitor is read-only.
+ctrl dynsec removeRoleACL observer publishClientSend 'devices/#' 2>/dev/null || true
+ctrl dynsec removeClientRole "$ADMIN_USER" observer 2>/dev/null || true
+
+echo ">> Creating dedicated read-only portal monitor..."
+if ctrl dynsec getClient portal-monitor >/dev/null 2>&1; then
+  ctrl dynsec setClientPassword portal-monitor "$MONITOR_PW"
+else
+  ctrl dynsec createClient portal-monitor -p "$MONITOR_PW"
+fi
+ctrl dynsec addClientRole portal-monitor observer 2>/dev/null || true
 
 echo ""
 echo "=================================================================="
 echo "  Mosquitto ready:  ${DOMAIN}:8883 (devices, TLS)"
 echo "                    wss://${DOMAIN}/mqtt (browser, via Caddy)"
-echo "  Put the '${ADMIN_USER}' password into the portal .env as DYNSEC_ADMIN_PASS."
+echo "  Put the '${ADMIN_USER}' password into .env as DYNSEC_ADMIN_PASS."
+echo "  Put the separate monitor password into .env as MONITOR_PASS."
 echo "=================================================================="

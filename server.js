@@ -9,6 +9,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const FileStore = require('session-file-store')(session);
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
@@ -22,6 +23,7 @@ const monitor = require('./lib/monitor');
 const snippets = require('./lib/snippets');
 const config = require('./lib/config');
 const privacy = require('./lib/privacy');
+const csrf = require('./lib/csrf');
 
 config.assertProductionEnv(process.env);
 
@@ -54,8 +56,17 @@ app.use(session({
   secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
   resave: false,
   saveUninitialized: false,
+  store: new FileStore({
+    path: path.join(__dirname, 'data', 'sessions'),
+    ttl: 3600,
+    secret: process.env.SESSION_SECRET,
+    retries: 1,
+    reapInterval: 3600,
+    logFn: () => {},
+  }),
   cookie: { httpOnly: true, sameSite: 'lax', secure: process.env.COOKIE_SECURE !== 'false', maxAge: 3600e3 },
 }));
+app.use(csrf.expose);
 
 const CLASS_CODE = process.env.CLASS_CODE || '';
 const ADMIN_HASH = process.env.ADMIN_PASSWORD_HASH || ''; // "salthex:hashhex"
@@ -147,21 +158,21 @@ app.post('/login', loginLimiter, (req, res) => {
   });
 });
 
-app.post('/logout', (req, res) => req.session.destroy(() => res.redirect('/login')));
+app.post('/logout', requireAdmin, csrf.protect, (req, res) => req.session.destroy(() => res.redirect('/login')));
 
 app.get('/admin', requireAdmin, async (req, res) => {
   const codeList = codes.list();
   try {
     const users = await dynsec.listStudents();
     const rows = users.map((u) => { const row = { username: u, ...store.meta(u) }; row.retentionExpired = privacy.isExpired(row, privacySettings.retentionDays); return row; });
-    res.render('admin', { rows, codes: codeList, broker, privacy: privacySettings, error: req.query.error || null, ok: req.query.ok || null });
+    res.render('admin', { rows, codes: codeList, broker, privacy: privacySettings, monitorHealth: monitor.status(), error: req.query.error || null, ok: req.query.ok || null });
   } catch (e) {
-    res.render('admin', { rows: [], codes: codeList, broker, privacy: privacySettings, error: 'Cannot reach the broker: ' + e.message, ok: null });
+    res.render('admin', { rows: [], codes: codeList, broker, privacy: privacySettings, monitorHealth: monitor.status(), error: 'Cannot reach the broker: ' + e.message, ok: null });
   }
 });
 
 // Admin: manually create a student account
-app.post('/admin/student/add', requireAdmin, async (req, res) => {
+app.post('/admin/student/add', requireAdmin, csrf.protect, async (req, res) => {
   const u = String(req.body.username || '').toLowerCase().trim();
   const p = String(req.body.password || '');
   const display = V.cleanDisplayName(req.body.display);
@@ -179,24 +190,24 @@ app.post('/admin/student/add', requireAdmin, async (req, res) => {
 });
 
 // Admin: manage class codes
-app.post('/admin/code/add', requireAdmin, (req, res) => {
+app.post('/admin/code/add', requireAdmin, csrf.protect, (req, res) => {
   const c = String(req.body.code || '').trim();
   const ok = codes.add(c);
   res.redirect('/admin?' + (ok ? 'ok=' + encodeURIComponent('Added class code') : 'error=' + encodeURIComponent('Invalid or duplicate code (3–64 chars).')));
 });
-app.post('/admin/code/delete', requireAdmin, (req, res) => {
+app.post('/admin/code/delete', requireAdmin, csrf.protect, (req, res) => {
   codes.remove(String(req.body.code || ''));
   res.redirect('/admin?ok=' + encodeURIComponent('Removed class code'));
 });
 
 // Turn a student's board off (force-disconnect + block reconnect) or back on.
-app.post('/admin/disable', requireAdmin, async (req, res) => {
+app.post('/admin/disable', requireAdmin, csrf.protect, async (req, res) => {
   const u = String(req.body.username || '');
   if (!V.validUsername(u)) return res.redirect('/admin?error=' + encodeURIComponent('Invalid username.'));
   try { await dynsec.disableStudent(u); store.setDisabled(u, true); res.redirect('/admin?ok=' + encodeURIComponent('Turned off ' + u + ' (board forced offline)')); }
   catch (e) { console.error('[disable] broker error:', e.message); res.redirect('/admin?error=' + encodeURIComponent('Could not turn off — check the broker.')); }
 });
-app.post('/admin/enable', requireAdmin, async (req, res) => {
+app.post('/admin/enable', requireAdmin, csrf.protect, async (req, res) => {
   const u = String(req.body.username || '');
   if (!V.validUsername(u)) return res.redirect('/admin?error=' + encodeURIComponent('Invalid username.'));
   try { await dynsec.enableStudent(u); store.setDisabled(u, false); res.redirect('/admin?ok=' + encodeURIComponent('Turned on ' + u)); }
@@ -205,9 +216,15 @@ app.post('/admin/enable', requireAdmin, async (req, res) => {
 
 // Live device presence (polled by the admin page); merges the on/off state.
 app.get('/admin/devices.json', requireAdmin, (req, res) =>
-  res.json({ devices: monitor.devices().map((d) => ({ ...d, disabled: !!store.meta(d.username).disabled })) }));
+  {
+    monitor.prune(store.entries().map((row) => row.username));
+    res.json({
+      monitor: { ready: monitor.status().ready },
+      devices: monitor.devices().map((d) => ({ ...d, disabled: !!store.meta(d.username).disabled })),
+    });
+  });
 
-app.post('/admin/reset', requireAdmin, async (req, res) => {
+app.post('/admin/reset', requireAdmin, csrf.protect, async (req, res) => {
   const u = String(req.body.username || '');
   const p = String(req.body.password || '');
   if (!V.validUsername(u) || !V.validPassword(p)) return res.redirect('/admin?error=' + encodeURIComponent('Invalid username or password (min 8, no leading "-").'));
@@ -215,7 +232,7 @@ app.post('/admin/reset', requireAdmin, async (req, res) => {
   catch (e) { console.error('[reset] broker error:', e.message); res.redirect('/admin?error=' + encodeURIComponent('Could not reset that account — check the broker.')); }
 });
 
-app.post('/admin/delete', requireAdmin, async (req, res) => {
+app.post('/admin/delete', requireAdmin, csrf.protect, async (req, res) => {
   const u = String(req.body.username || '');
   if (!V.validUsername(u)) return res.redirect('/admin?error=' + encodeURIComponent('Invalid username.'));
   try { await dynsec.deleteStudent(u); store.remove(u); res.redirect('/admin?ok=' + encodeURIComponent('Deleted ' + u)); }

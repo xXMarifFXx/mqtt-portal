@@ -12,11 +12,12 @@ echo "password length read from .env: ${#DP}"
 if ctrl listClients >/dev/null 2>&1; then echo "RESULT: OK — dynsec-admin auth works"; else
   echo "RESULT: FAIL — dynsec-admin auth REJECTED. The rest will fail too."; fi
 
-echo; echo "================ 2. 'student' role and its ACLs ================"
-ctrl getRole student
+echo; echo "================ 2. dedicated monitor account / read-only role ================"
+ctrl getClient portal-monitor
+ctrl getRole observer
 
-echo; echo "================ 3. 'mariffb' client (does it have the student role?) ================"
-ctrl getClient mariffb
+echo; echo "================ 3. broker clients (students use per-user ns-<username> roles) ================"
+ctrl listClients
 
 echo; echo "================ 4. default ACL access policy ================"
 ctrl getDefaultACLAccess
@@ -29,3 +30,6 @@ cat /etc/mosquitto/conf.d/nrbridge.conf 2>/dev/null
 
 echo; echo "================ 7. recent mosquitto log (reason for denials/disconnects) ================"
 journalctl -u mosquitto -n 40 --no-pager 2>/dev/null | tail -40
+
+echo; echo "================ 8. portal readiness ================"
+curl -fsS http://127.0.0.1:3001/readyz 2>/dev/null || echo "portal readiness FAILED"

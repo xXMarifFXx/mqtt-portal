@@ -23,9 +23,12 @@
   }
   function poll() {
     fetch('/admin/devices.json', { credentials: 'same-origin' })
-      .then(function (r) { return r.json(); })
-      .then(function (j) { render(j.devices || []); })
-      .catch(function () {});
+      .then(function (r) { if (!r.ok) throw new Error('status request failed'); return r.json(); })
+      .then(function (j) {
+        if (!j.monitor || !j.monitor.ready) throw new Error('status monitor unavailable');
+        render(j.devices || []);
+      })
+      .catch(function () { box.innerHTML = '<div class="err">Live status unavailable; displayed device state may be stale.</div>'; });
   }
   poll();
   setInterval(poll, 4000);

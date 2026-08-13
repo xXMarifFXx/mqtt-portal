@@ -48,6 +48,8 @@ In `.env` set: `NODE_ENV=production` · `CLASS_CODE=…` · `SESSION_SECRET=<ope
 `ADMIN_PASSWORD_HASH=<hashpw value>` · `DYNSEC_ADMIN_PASS=<from step 2>`. Confirm
 `PUBLIC_BROKER_HOST=mqtt.mariffb.my` and `PUBLIC_BROKER_WSS_URL=wss://mqtt.mariffb.my/mqtt`.
 Set `PRIVACY_CONTROLLER`, `PRIVACY_CONTACT`, and review `DATA_RETENTION_DAYS` before startup.
+Set the separate read-only monitor credential from step 2 as `MONITOR_PASS` and leave
+`MONITOR_USER=portal-monitor`; never use the dynsec administrator for monitoring.
 Then lock it down:
 ```bash
 sudo chown -R mqttportal:mqttportal /opt/mqtt-portal/.env /opt/mqtt-portal/data 2>/dev/null; sudo mkdir -p /opt/mqtt-portal/data && sudo chown mqttportal:mqttportal /opt/mqtt-portal/data && sudo chmod 600 /opt/mqtt-portal/.env

@@ -50,6 +50,7 @@ if [[ "${RECOVERY_TEST_MODE:-0}" != 1 ]]; then systemctl stop mqtt-portal mosqui
 install -m 600 "$work/payload/portal/.env" "$PORTAL_ROOT/.env"
 mkdir -p "$PORTAL_ROOT/data"
 cp -a "$work/payload/portal/data/." "$PORTAL_ROOT/data/"
+rm -rf "$PORTAL_ROOT/data/sessions"
 install -m 640 "$work/payload/mosquitto/dynamic-security.json" "$DYNSEC_FILE"
 if [[ -r "$work/payload/mosquitto/nrbridge.conf" ]]; then install -m 644 "$work/payload/mosquitto/nrbridge.conf" "$MOSQUITTO_CONF"; fi
 

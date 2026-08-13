@@ -9,5 +9,8 @@ for (const directive of [
   'listener 8883', 'max_connections 200', 'listener 8083 127.0.0.1',
   'max_connections 100', 'listener 1883 127.0.0.1', 'max_connections 30',
   'MemoryMax=512M', 'LimitNOFILE=8192', 'mosquitto -c /etc/mosquitto/mosquitto.conf -t',
+  'removeRoleACL observer publishClientSend', 'removeClientRole "$ADMIN_USER" observer',
+  'createClient portal-monitor', 'addClientRole portal-monitor observer',
 ]) assert(setup.includes(directive), 'missing broker protection: ' + directive);
+assert(!setup.includes("addRoleACL student"), 'obsolete shared %u student role must not be provisioned');
 console.log('Mosquitto classroom resource-limit checks passed');

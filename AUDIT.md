@@ -78,17 +78,30 @@ Verdict: **NO-GO (1 P0, 7 P1, 12 P2)**.
 ## P2 — medium priority
 
 - [ ] **[Sessions] Production uses Express MemoryStore.** No session store is configured (`server.js:47-53`); the runtime itself warns that it leaks memory and does not scale. Admin sessions also disappear on restart. Use a small durable store (for example SQLite or Redis) with expiry.
+  **Remediated locally (2026-08-13):** encrypted file-backed sessions persist across process
+  restarts, expire after one hour, and are excluded from backups. Persistence/destruction tests pass.
 - [ ] **[Security] Admin mutations have no CSRF token.** Routes at `server.js:129,143,161,166,172,178,189,197` rely on `SameSite=Lax`. Add per-session CSRF protection and origin checks.
+  **Remediated locally (2026-08-13):** every authenticated POST requires a constant-time
+  session-bound synchronizer token; an HTTP integration test proves missing=403 and valid=accepted.
 - [ ] **[Least privilege] The monitor uses the dynsec administrator as a long-lived MQTT client.** `lib/monitor.js:24-45` also suppresses grant/connection errors. Create a separate read-only monitor client; do not give the admin a runtime role.
+  **Remediated locally (2026-08-13):** runtime uses dedicated `MONITOR_USER`/`MONITOR_PASS`;
+  production rejects admin reuse and setup removes the administrator's observer role.
 - [ ] **[Authorization drift] The “observer” role can publish to every student's topics.** `deploy/samebox/setup-mosquitto.sh:85-88` grants `publishClientSend devices/#` despite `lib/monitor.js:4` calling it read-only. Split monitor-read and Node-RED publish roles.
+  **Remediated locally (2026-08-13):** setup removes `publishClientSend` and provisions only
+  subscribe/receive access for `portal-monitor`; no Node-RED privileges are silently changed.
 - [ ] **[Secret exposure] Admin and student passwords are passed in process arguments.** `lib/dynsec.js:23-48`, `lib/monitor.js:27-29` and diagnostic/setup scripts use `-P`/`-p`; local process inspection can expose them. Prefer the Dynamic Security control topic through a persistent authenticated connection or another secret-input mechanism, and restrict host process visibility meanwhile.
 - [ ] **[Monitoring accuracy] Live-device state is unbounded and never reconciled.** `_status` only grows (`lib/monitor.js:17-22,41-44`), deleted users remain, subscribe failures are ignored, and errors are swallowed. Track monitor health, verify SUBACK, prune deleted/stale entries and expose “data stale” in the UI.
+  **Remediated locally (2026-08-13):** connection/SUBACK health drives readiness and admin UI,
+  deleted users are pruned against portal registrations, and polling failures display stale-state warnings.
 - [ ] **[Browser reliability] Console error handling cancels MQTT.js recovery.** Although `reconnectPeriod` is set, every `error` calls `client.end(true)` (`public/console.js:50-69`). Distinguish permanent auth failures from transient network errors and display SUBACK reason codes.
 - [ ] **[Deployment drift] Broker setup and diagnostics still assume the broken shared `%u` role.** `setup-mosquitto.sh:6,81-84` creates `devices/%u/#`, which Mosquitto 2.0.x does not substitute; `diagnose.sh:15-19` checks that stale role and hard-codes one username. Generate/check per-user roles or require Mosquitto 2.1+, and make diagnostics enumerate real users.
 - [ ] **[Library TLS] `secure()` without a CA is MITM-able.** `src/NodeBridge.cpp:65-72` calls `setInsecure()`. For `mqtt.mariffb.my`, ship a portal example with CA validation and time synchronization; make insecure TLS visibly opt-in.
 - [ ] **[Library input safety] Device/root/key strings are not validated.** They feed topic/client-ID/JSON construction (`src/NodeBridge.cpp:52-58,152-158,216-228`). Long device names can truncate the unique chip suffix, `/+#` changes topic structure, and quotes make telemetry JSON invalid. Validate/copy identifiers and JSON-escape the device field.
 - [ ] **[Runtime responsiveness] Broker outage can block the sketch repeatedly.** The synchronous connect is bounded to 5 seconds (`src/NodeBridge.cpp:81,100-112`) but retries every 3 seconds. This can starve a student's algorithm while the broker is down. Use a longer backoff with jitter and consider a nonblocking MQTT transport in a future major version.
 - [ ] **[Quality/a11y] Coverage and UI accessibility are shallow.** Portal tests cover validators/argument builders but not HTTP auth flows, provisioning rollback, broker integration, monitor recovery, deployment or restore. The admin inputs lack programmatic labels (`views/admin.ejs:34-36,66-69,101-103`) and live status is not announced. Add CI integration tests and a WCAG keyboard/screen-reader pass.
+  **Partially remediated locally (2026-08-13):** GitHub CI now runs unit/integration tests,
+  transactional rollback, HTTP CSRF, shared-NAT registration, encrypted recovery, syntax and
+  dependency audit. N-R_ESP32 has a 3-board compile matrix. Full WCAG review remains open.
 
 ## Efficiency and speed
 

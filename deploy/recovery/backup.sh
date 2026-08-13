@@ -30,6 +30,8 @@ mkdir -p "$payload/portal/data" "$payload/mosquitto" "$payload/caddy" "$payload/
 
 install -m 600 "$PORTAL_ROOT/.env" "$payload/portal/.env"
 if [[ -d "$PORTAL_ROOT/data" ]]; then cp -a "$PORTAL_ROOT/data/." "$payload/portal/data/"; fi
+# Sessions are ephemeral secrets; never back them up or resurrect old admin logins.
+rm -rf "$payload/portal/data/sessions"
 install -m 600 "$DYNSEC_FILE" "$payload/mosquitto/dynamic-security.json"
 [[ -r "$MOSQUITTO_CONF" ]] && install -m 600 "$MOSQUITTO_CONF" "$payload/mosquitto/nrbridge.conf"
 [[ -d "$MOSQUITTO_CERT_DIR" ]] && cp -a "$MOSQUITTO_CERT_DIR" "$payload/mosquitto/certs"
