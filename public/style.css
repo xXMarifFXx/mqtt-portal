@@ -59,3 +59,6 @@ th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04
 .addrow button{white-space:nowrap}
 .devrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f6f8fb;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:0 0 18px;font-size:14px}
 .devrow .muted{font-size:12px}
+.checklabel{display:flex;gap:10px;align-items:flex-start;font-weight:400}.checklabel input{width:auto;margin:3px 0 0}.checklabel span{flex:1}
+footer{border-top:1px solid var(--line);margin-top:22px;padding-top:14px;font-size:13px;color:var(--muted)}
+.policy h2{font-size:17px;margin:22px 0 6px}.policy p,.policy li{line-height:1.55}.policy ul{padding-left:22px}

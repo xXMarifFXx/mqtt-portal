@@ -68,6 +68,13 @@ Verdict: **NO-GO (1 P0, 7 P1, 12 P2)**.
 
 - [ ] **[Privacy/compliance — scope must be confirmed] No privacy notice, retention schedule or incident procedure.** The portal collects usernames, optional names and activity timestamps but the repository has no notice or retention/deletion policy. If used for a commercial course or other activity in scope of Malaysia's PDPA, the notice and security/retention obligations need resolution before student rollout; minors require additional institutional review. Minimize display-name collection, publish a notice, define term-end deletion and document incident handling. This is not legal advice.
 
+  **Remediation implemented locally (2026-08-13):** `/privacy` now provides a factual student
+  notice; registration records notice acknowledgment; real names are discouraged; production
+  requires a responsible-party/contact and 30-730 day retention setting; admin flags overdue
+  accounts; a tested cleanup command is dry-run-first and explicit; the runbook covers backups,
+  Node-RED data, incidents and minors. This remains open until the responsible institution
+  confirms legal/policy scope, supplies real contact details, approves the notice and deploys it.
+
 ## P2 — medium priority
 
 - [ ] **[Sessions] Production uses Express MemoryStore.** No session store is configured (`server.js:47-53`); the runtime itself warns that it leaks memory and does not scale. Admin sessions also disappear on restart. Use a small durable store (for example SQLite or Redis) with expiry.

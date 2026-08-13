@@ -6,6 +6,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
+const privacy = require('../lib/privacy');
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mqtt-reg-limit-'));
 const port = 3151 + (process.pid % 300);
@@ -27,9 +28,15 @@ const post = (body) => fetch(`http://127.0.0.1:${port}/register`, {
   }
   for (let i = 0; i < 25; i++) {
     const user = 'student' + String(i).padStart(2, '0');
-    const res = await post(`username=${user}&password=password123&classcode=CLASS1`);
+    const res = await post(`username=${user}&password=password123&classcode=CLASS1&privacy_notice=${privacy.NOTICE_VERSION}`);
     assert.strictEqual(res.status, 200, `valid shared-IP registration ${i + 1}`);
   }
+  const noNotice = await post('username=nonotice&password=password123&classcode=CLASS1');
+  assert.strictEqual(noNotice.status, 400, 'privacy notice acknowledgement is required');
+  const noticePage = await fetch(`http://127.0.0.1:${port}/privacy`);
+  assert.strictEqual(noticePage.status, 200);
+  const noticeText = await noticePage.text();
+  assert(noticeText.includes('Data collected') && noticeText.includes('180 days'));
   let last;
   for (let i = 0; i < 11; i++) last = await post(`username=wrong${i}&password=password123&classcode=BAD`);
   assert.strictEqual(last.status, 429, 'wrong class-code attempts should be throttled');

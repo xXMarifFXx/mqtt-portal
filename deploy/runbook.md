@@ -58,7 +58,9 @@ sudo cp .env.example .env && sudo nano .env
 ```
 In `.env`: `NODE_ENV=production` · `CLASS_CODE=…` · `SESSION_SECRET=<openssl>` ·
 `ADMIN_PASSWORD_HASH=<hashpw>` · `DYNSEC_ADMIN_PASS=<from step 5>`. (Host + wss URL are
-already set to `mqtt.mariffb.my`.) Then:
+already set to `mqtt.mariffb.my`.) Also set `PRIVACY_CONTROLLER` to the responsible
+institution/instructor, `PRIVACY_CONTACT` to a working contact, and review
+`DATA_RETENTION_DAYS`. Then:
 ```bash
 sudo mkdir -p data && sudo chown mqttportal:mqttportal data && sudo chmod 600 .env && sudo chown mqttportal:mqttportal .env
 sudo cp deploy/mqtt-portal.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now mqtt-portal && sleep 1 && curl -s localhost:3000/healthz

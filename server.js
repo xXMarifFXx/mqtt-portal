@@ -21,6 +21,7 @@ const codes = require('./lib/codes');
 const monitor = require('./lib/monitor');
 const snippets = require('./lib/snippets');
 const config = require('./lib/config');
+const privacy = require('./lib/privacy');
 
 config.assertProductionEnv(process.env);
 
@@ -59,6 +60,7 @@ app.use(session({
 const CLASS_CODE = process.env.CLASS_CODE || '';
 const ADMIN_HASH = process.env.ADMIN_PASSWORD_HASH || ''; // "salthex:hashhex"
 const broker = { host: BROKER_HOST, port: BROKER_PORT, wss: WSS_URL };
+const privacySettings = privacy.settings();
 
 function verifyAdmin(pw) {
   if (!ADMIN_HASH.includes(':')) return false;
@@ -91,29 +93,32 @@ const loginLimiter = rateLimit({ windowMs: 15 * 60e3, max: 10 });
 function requireValidClassCode(req, res, next) {
   if (codes.isValid(String(req.body.classcode || ''))) return registrationCapacityLimiter(req, res, next);
   return badCodeLimiter(req, res, () => res.status(400).render('register', {
-    error: 'Wrong or missing class code.', done: null, broker,
+    error: 'Wrong or missing class code.', done: null, broker, privacy: privacySettings,
   }));
 }
 
 // ---- student registration --------------------------------------------------
 app.get('/', (req, res) => {
-  res.render('register', { error: null, done: null, broker });
+  res.render('register', { error: null, done: null, broker, privacy: privacySettings });
 });
+
+app.get('/privacy', (req, res) => res.render('privacy', { privacy: privacySettings }));
 
 app.post('/register', requireValidClassCode, async (req, res) => {
   const username = String(req.body.username || '').toLowerCase().trim();
   const password = String(req.body.password || '');
   const display = V.cleanDisplayName(req.body.display);
-  const err = (m) => res.status(400).render('register', { error: m, done: null, broker });
+  const err = (m) => res.status(400).render('register', { error: m, done: null, broker, privacy: privacySettings });
 
+  if (req.body.privacy_notice !== privacy.NOTICE_VERSION) return err('Please read and acknowledge the privacy notice.');
   if (!V.validUsername(username)) return err('Username: start with a letter, 3–20 chars of a–z, 0–9, _ or -, and not a reserved word.');
   if (!V.validPassword(password)) return err('Password must be at least 8 characters.');
 
   try {
     await dynsec.createStudent(username, password);
-    store.record(username, display, new Date().toISOString());
+    store.record(username, display, new Date().toISOString(), privacy.NOTICE_VERSION);
     return res.render('register', {
-      error: null, broker,
+      error: null, broker, privacy: privacySettings,
       done: { username, namespace: V.namespaceFor(username), sketch: snippets.portalSketch(broker, username) },
     });
   } catch (e) {
@@ -148,10 +153,10 @@ app.get('/admin', requireAdmin, async (req, res) => {
   const codeList = codes.list();
   try {
     const users = await dynsec.listStudents();
-    const rows = users.map((u) => ({ username: u, ...store.meta(u) }));
-    res.render('admin', { rows, codes: codeList, broker, error: req.query.error || null, ok: req.query.ok || null });
+    const rows = users.map((u) => { const row = { username: u, ...store.meta(u) }; row.retentionExpired = privacy.isExpired(row, privacySettings.retentionDays); return row; });
+    res.render('admin', { rows, codes: codeList, broker, privacy: privacySettings, error: req.query.error || null, ok: req.query.ok || null });
   } catch (e) {
-    res.render('admin', { rows: [], codes: codeList, broker, error: 'Cannot reach the broker: ' + e.message, ok: null });
+    res.render('admin', { rows: [], codes: codeList, broker, privacy: privacySettings, error: 'Cannot reach the broker: ' + e.message, ok: null });
   }
 });
 
@@ -164,7 +169,7 @@ app.post('/admin/student/add', requireAdmin, async (req, res) => {
   if (!V.validPassword(p)) return res.redirect('/admin?error=' + encodeURIComponent('Password must be at least 8 characters (no leading "-").'));
   try {
     await dynsec.createStudent(u, p);
-    store.record(u, display, new Date().toISOString());
+    store.record(u, display, new Date().toISOString(), 'admin-created');
     res.redirect('/admin?ok=' + encodeURIComponent('Created ' + u));
   } catch (e) {
     const msg = /exist/i.test(e.message) ? 'That username is already taken.' : 'Could not create the account — check the broker.';

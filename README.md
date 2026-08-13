@@ -132,3 +132,16 @@ The test console needs a real wss broker; in mock dev the page renders but won't
 - Mosquitto Community Edition does not provide a simple per-username connection quota here;
   the listener and cgroup ceilings bound total damage while dynsec confines each username's
   topics.
+
+## Privacy and retention
+
+- Registration requires acknowledgment of the public `/privacy` notice. A real name is not
+  required; students are told to use a nickname or leave the display-name field blank.
+- The portal metadata store keeps username, optional display name, creation time, disabled
+  state and notice version. It does not store the student's plaintext broker password. The
+  browser console connects directly to Mosquitto.
+- Set `PRIVACY_CONTROLLER`, `PRIVACY_CONTACT` and `DATA_RETENTION_DAYS` in production. Startup
+  rejects missing controller/contact values.
+- `npm run privacy:expired` is a non-mutating retention report. Follow
+  [`deploy/privacy/README.md`](deploy/privacy/README.md) for backup, reviewed deletion,
+  Node-RED cleanup and incident steps.

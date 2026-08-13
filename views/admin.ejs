@@ -27,7 +27,7 @@
     <tbody>
     <% rows.forEach(function(r){ %>
       <tr>
-        <td><code><%= r.username %></code><% if (r.disabled) { %> <span class="muted">(off)</span><% } %></td>
+        <td><code><%= r.username %></code><% if (r.disabled) { %> <span class="muted">(off)</span><% } %><% if (r.retentionExpired) { %> <span class="badge warn">retention due</span><% } %></td>
         <td><%= r.displayName || '—' %></td>
         <td class="muted"><%= r.createdAt ? r.createdAt.slice(0,10) : '—' %></td>
         <td>
@@ -70,6 +70,11 @@
       <button>Create</button>
     </form>
     <small class="muted">Scoped to <code>devices/&lt;username&gt;/#</code>, same as self-registration.</small>
+  </div>
+  <div class="panel">
+    <b>Data retention</b>
+    <p class="hint">Accounts are due for deletion after <%= privacy.retentionDays %> days. Rows marked “retention due” should be reviewed and deleted, or use the dry-run cleanup command documented in <code>deploy/privacy/README.md</code>.</p>
+    <a href="/privacy">View student privacy notice</a>
   </div>
 
   <!-- ===== Class codes ===== -->

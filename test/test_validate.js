@@ -4,6 +4,7 @@ const assert = require('assert');
 const V = require('../lib/validate');
 const dynsec = require('../lib/dynsec');
 const snippets = require('../lib/snippets');
+const privacy = require('../lib/privacy');
 
 let n = 0, fail = 0;
 function t(name, fn) { n++; try { fn(); console.log('  ok  ' + name); } catch (e) { fail++; console.log('  FAIL ' + name + ' — ' + e.message); } }
@@ -36,6 +37,12 @@ t('portal sketch keeps login and topic namespace identical', () => {
   assert(sketch.includes('.secure(NODEBRIDGE_ISRG_ROOT_X1)'));
   assert(sketch.includes('.broker("mqtt.mariffb.my", 8883)'));
   assert(!sketch.includes('.secure()'), 'must not use unvalidated TLS');
+});
+t('privacy retention boundary', () => {
+  const now = new Date('2026-08-13T00:00:00Z');
+  assert(privacy.isExpired({ createdAt: '2026-01-01T00:00:00Z' }, 180, now));
+  assert(!privacy.isExpired({ createdAt: '2026-08-01T00:00:00Z' }, 180, now));
+  assert(!privacy.isExpired({ createdAt: '' }, 180, now));
 });
 
 // --- display name sanitising ---

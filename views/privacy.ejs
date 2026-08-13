@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MQTT Portal — Privacy Notice</title>
+<link rel="stylesheet" href="/static/style.css">
+</head><body>
+<main class="card wide policy">
+  <div class="row spread"><h1>Student privacy notice</h1><a href="/">← back</a></div>
+  <p class="sub">Version <%= privacy.noticeVersion %> · Responsible party: <%= privacy.controller %></p>
+
+  <h2>Why this portal uses data</h2>
+  <p>It creates and manages an MQTT account for class exercises, confines that account to its
+    own topic namespace, shows the instructor whether a device reports online/offline, and
+    supports account troubleshooting and deletion.</p>
+
+  <h2>Data collected</h2>
+  <ul>
+    <li>Required: chosen username, broker password and class code.</li>
+    <li>Optional: a display name. A nickname is sufficient; a real name is not required by this portal.</li>
+    <li>Operational: account creation date, enabled/disabled state, device online/offline status and last status time.</li>
+  </ul>
+  <p>The portal sends the chosen password to the local Mosquitto broker to create the account,
+    but the portal metadata store does not save that plaintext password. The browser test
+    console connects directly to Mosquitto; credentials entered there are not submitted to the
+    portal application. MQTT messages are processed by the broker and any Node-RED flows your
+    instructor configures, so do not publish personal, confidential or sensitive information.</p>
+
+  <h2>Access and disclosure</h2>
+  <p>The instructor can see usernames, optional display names, creation dates, enabled state and
+    device presence. Accounts are topic-isolated. Data is hosted on the course VPS and is not
+    sold or used for advertising. Infrastructure providers may process server data as necessary
+    to host and back up the service.</p>
+
+  <h2>Retention</h2>
+  <p>Accounts and portal registration metadata are scheduled for deletion after
+    <strong><%= privacy.retentionDays %> days</strong>, or earlier at the end of the course when no
+    longer needed. Encrypted backups may remain until their configured backup retention expires.
+    MQTT messages may have different retention if an instructor's Node-RED flow stores them; ask
+    before publishing anything beyond class telemetry.</p>
+
+  <h2>Your choices and requests</h2>
+  <p>The display name is optional. You may ask to see, correct, disable or delete your portal
+    account and metadata by contacting <strong><%= privacy.contact %></strong>. If you are under the
+    age required by your institution to use this service independently, follow your instructor's
+    parent/guardian or institutional authorization process before registering.</p>
+
+  <h2>Security and incidents</h2>
+  <p>Connections use TLS, accounts have per-user topic permissions, and administrative access is
+    restricted. No online system is risk-free. Report suspected credential exposure or unexpected
+    access promptly to <strong><%= privacy.contact %></strong>; change the affected password and stop
+    publishing until the instructor confirms it is safe.</p>
+</main>
+</body></html>

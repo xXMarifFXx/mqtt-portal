@@ -41,8 +41,9 @@
   <% } else { %>
     <% if (error) { %><div class="err"><%= error %></div><% } %>
     <form method="post" action="/register" autocomplete="off">
-      <label>Your name (optional)
-        <input name="display" maxlength="60" placeholder="Ada Lovelace">
+      <label>Display name (optional)
+        <input name="display" maxlength="60" placeholder="Nickname or leave blank">
+        <small>Do not enter your real name unless your instructor specifically requires it.</small>
       </label>
       <label>Username <span class="req">*</span>
         <input name="username" required pattern="[a-zA-Z][a-zA-Z0-9_\-]{2,19}" placeholder="ada">
@@ -54,9 +55,14 @@
       <label>Class code <span class="req">*</span>
         <input name="classcode" required placeholder="code from your instructor">
       </label>
+      <label class="checklabel">
+        <input type="checkbox" name="privacy_notice" value="<%= privacy.noticeVersion %>" required>
+        <span>I have read the <a href="/privacy" target="_blank" rel="noopener">privacy notice</a>, including the <%= privacy.retentionDays %>-day retention period.</span>
+      </label>
       <button type="submit">Create my account</button>
     </form>
     <p class="cta"><a href="/console">Already have an account? Open the MQTT test console →</a></p>
   <% } %>
+  <footer><a href="/privacy">Privacy notice</a></footer>
 </main>
 </body></html>
