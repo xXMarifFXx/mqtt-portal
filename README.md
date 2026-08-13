@@ -107,3 +107,12 @@ npm run dev        # DYNSEC_MODE=mock, http, no broker -> http://127.0.0.1:3000
 npm test           # pure-logic unit tests
 ```
 The test console needs a real wss broker; in mock dev the page renders but won't connect.
+
+## Service checks
+
+- `GET /healthz` is process liveness only.
+- `GET /readyz` returns 200 only when the portal can administer Mosquitto Dynamic Security
+  and its status-monitor MQTT client is connected and subscribed. Deploy/restore automation
+  uses readiness, so a running but unusable broker integration cannot be reported as success.
+- Production startup rejects missing/placeholder broker settings, weak/missing session and
+  admin configuration, a missing dynsec password, insecure cookies, or a non-WSS console URL.

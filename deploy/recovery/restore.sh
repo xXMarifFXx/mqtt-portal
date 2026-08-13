@@ -61,7 +61,6 @@ if [[ "${RECOVERY_TEST_MODE:-0}" != 1 ]]; then
   sleep 2
   systemctl is-active --quiet mosquitto
   systemctl is-active --quiet mqtt-portal
-  curl -fsS http://127.0.0.1:3001/healthz >/dev/null
+  curl --retry 20 --retry-delay 1 --retry-connrefused -fsS http://127.0.0.1:3001/readyz >/dev/null
 fi
 echo "Restore completed and services verified. Caddy/cert copies are reference-only and were not overwritten."
-

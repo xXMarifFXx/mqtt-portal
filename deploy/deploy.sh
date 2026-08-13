@@ -19,7 +19,8 @@ rollback() {
   git reset --hard "$previous_commit"
   npm ci --omit=dev
   systemctl restart mqtt-portal
-  if curl --retry 10 --retry-delay 1 --retry-connrefused -fsS http://127.0.0.1:3001/healthz >/dev/null; then
+  # The previous release may predate /readyz, so rollback checks process liveness.
+  if curl --retry 20 --retry-delay 1 --retry-connrefused -fsS http://127.0.0.1:3001/healthz >/dev/null; then
     echo "Rollback succeeded; previous application is serving." >&2
   else
     echo "ROLLBACK FAILED — inspect: journalctl -u mqtt-portal -n 80 --no-pager" >&2
@@ -41,6 +42,6 @@ echo "==> 4/5 Restarting the portal"
 systemctl restart mqtt-portal
 
 echo "==> 5/5 Health check"
-curl --retry 10 --retry-delay 1 --retry-connrefused -fsS http://127.0.0.1:3001/healthz >/dev/null
+curl --retry 20 --retry-delay 1 --retry-connrefused -fsS http://127.0.0.1:3001/readyz >/dev/null
 trap - ERR
 echo "Deploy succeeded: $(git rev-parse --short HEAD) — https://mqtt.mariffb.my"

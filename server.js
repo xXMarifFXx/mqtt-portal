@@ -20,6 +20,9 @@ const store = require('./lib/store');
 const codes = require('./lib/codes');
 const monitor = require('./lib/monitor');
 const snippets = require('./lib/snippets');
+const config = require('./lib/config');
+
+config.assertProductionEnv(process.env);
 
 const BROKER_HOST = process.env.PUBLIC_BROKER_HOST || 'your-broker.example.com';
 const BROKER_PORT = process.env.PUBLIC_BROKER_PORT || '8883';        // MQTT over TLS (devices)
@@ -56,13 +59,6 @@ app.use(session({
 const CLASS_CODE = process.env.CLASS_CODE || '';
 const ADMIN_HASH = process.env.ADMIN_PASSWORD_HASH || ''; // "salthex:hashhex"
 const broker = { host: BROKER_HOST, port: BROKER_PORT, wss: WSS_URL };
-
-// In production a stable SESSION_SECRET is mandatory (a random per-boot one silently
-// logs every admin out on each restart). Fail fast rather than "work" then surprise.
-if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
-  console.error('FATAL: set SESSION_SECRET in production (openssl rand -hex 32).');
-  process.exit(1);
-}
 
 function verifyAdmin(pw) {
   if (!ADMIN_HASH.includes(':')) return false;
@@ -202,7 +198,25 @@ app.post('/admin/delete', requireAdmin, async (req, res) => {
   catch (e) { console.error('[delete] broker error:', e.message); res.redirect('/admin?error=' + encodeURIComponent('Could not delete that account — check the broker.')); }
 });
 
-app.get('/healthz', (req, res) => res.json({ ok: true }));
+// Liveness means the HTTP process is running. Readiness additionally proves that broker
+// administration and the presence-monitor subscription are usable.
+app.get('/healthz', (req, res) => res.json({ ok: true, service: 'mqtt-portal' }));
+app.get('/readyz', async (req, res) => {
+  const publicMonitorStatus = () => {
+    const s = monitor.status();
+    return { ready: s.ready, connected: s.connected, subscribed: s.subscribed };
+  };
+  const checks = { brokerControl: false, monitor: publicMonitorStatus() };
+  try {
+    await dynsec.healthCheck();
+    checks.brokerControl = true;
+  } catch (e) {
+    checks.brokerError = 'unavailable';
+  }
+  checks.monitor = publicMonitorStatus();
+  const ok = checks.brokerControl && checks.monitor.ready;
+  res.status(ok ? 200 : 503).json({ ok, checks });
+});
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
