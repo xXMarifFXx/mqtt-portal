@@ -52,19 +52,47 @@ cat > "$CONF" <<CONF_EOF
 plugin ${PLUGIN}
 plugin_opt_config_file ${DYNSEC_JSON}
 
+# Classroom-safe global resource bounds. N-R_ESP32 payloads are <=512 bytes by default;
+# 16 KiB leaves ample room for Node-RED while rejecting accidental/hostile huge publishes.
+message_size_limit 16384
+max_inflight_messages 20
+max_inflight_bytes 262144
+max_queued_messages 100
+max_queued_bytes 1048576
+queue_qos0_messages false
+allow_anonymous false
+
 # Devices — MQTT over TLS (public):
 listener 8883
+max_connections 200
 certfile ${CERTDIR}/fullchain.pem
 keyfile  ${CERTDIR}/privkey.pem
 
 # Browser console — plaintext WebSocket on localhost; Caddy terminates TLS and
 # proxies wss://${DOMAIN}/mqtt to here:
 listener 8083 127.0.0.1
+max_connections 100
 protocol websockets
 
 # Portal control + Node-RED — localhost plaintext:
 listener 1883 127.0.0.1
+max_connections 30
 CONF_EOF
+
+# Bound broker resources at systemd/cgroup level as a final safety net for the shared VPS.
+mkdir -p /etc/systemd/system/mosquitto.service.d
+cat > /etc/systemd/system/mosquitto.service.d/classroom-limits.conf <<'LIMITS_EOF'
+[Service]
+LimitNOFILE=8192
+TasksMax=256
+MemoryMax=512M
+Restart=on-failure
+RestartSec=3
+LIMITS_EOF
+systemctl daemon-reload
+
+# Refuse to restart into an invalid configuration.
+mosquitto -c /etc/mosquitto/mosquitto.conf -t
 
 command -v ufw >/dev/null && ufw allow 8883/tcp >/dev/null 2>&1 || true
 systemctl restart mosquitto; sleep 1

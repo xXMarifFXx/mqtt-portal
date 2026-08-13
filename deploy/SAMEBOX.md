@@ -68,6 +68,12 @@ open for Caddy; 8083 and 1883 stay localhost-only.
 Follow [`deploy/recovery/README.md`](recovery/README.md). Configure an rclone destination
 outside this VPS and store a separate copy of the encryption key before the first class.
 
+### Applying classroom broker limits
+
+The current `setup-mosquitto.sh` includes tested configuration guards and conservative
+classroom connection/payload/queue/cgroup limits. Re-run it after taking a verified backup;
+it validates the complete Mosquitto configuration before restarting the broker.
+
 ### If step 2 errors
 The dynsec plugin path or a `mosquitto_ctrl` flag can vary by version — that's all isolated
 in `setup-mosquitto.sh` / `lib/dynsec.js`. Paste the output and I'll push a one-line fix.

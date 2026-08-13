@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "DYNSEC_MODE=mock COOKIE_SECURE=false node server.js",
     "hashpw": "node scripts/hashpw.js",
-    "test": "node test/test_validate.js && node test/test_dynsec.js && node test/test_config.js",
+    "test": "node test/test_validate.js && node test/test_dynsec.js && node test/test_config.js && node test/test_mosquitto_config.js && node test/test_registration_limits.js",
     "test:recovery": "bash test/test_recovery.sh"
   },
   "engines": {

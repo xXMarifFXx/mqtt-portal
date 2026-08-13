@@ -116,3 +116,19 @@ The test console needs a real wss broker; in mock dev the page renders but won't
   uses readiness, so a running but unusable broker integration cannot be reported as success.
 - Production startup rejects missing/placeholder broker settings, weak/missing session and
   admin configuration, a missing dynsec password, insecure cookies, or a non-WSS console URL.
+
+## Classroom capacity and broker limits
+
+- Correct class-code registrations are not limited by public IP, so 25+ students sharing one
+  campus NAT can register normally. Wrong class-code attempts are limited to 10 per IP per
+  15 minutes.
+- `REGISTRATION_HOURLY_CAP` defaults to 200 successful/authorized attempts across the class.
+  Raise it deliberately for a larger event; it is a provisioning-abuse ceiling, not a class
+  license limit.
+- The same-box Mosquitto setup allows 200 device TLS connections, 100 browser WebSockets and
+  30 localhost control/Node-RED connections. It limits publishes to 16 KiB, queued data to
+  1 MiB/100 messages per client, and applies systemd memory/task/file-descriptor ceilings.
+  These defaults are intentionally much larger than N-R_ESP32's normal 512-byte messages.
+- Mosquitto Community Edition does not provide a simple per-username connection quota here;
+  the listener and cgroup ceilings bound total damage while dynsec confines each username's
+  topics.

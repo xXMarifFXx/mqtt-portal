@@ -27,6 +27,11 @@ Verdict: **NO-GO (1 P0, 7 P1, 12 P2)**.
 
 - [ ] **[Classroom correctness] Shared-campus NAT locks out student 21.** The registration limiter is `20` requests per IP per 15 minutes (`server.js:77`, applied at `server.js:85`). Successful registrations count too. A class on one Wi-Fi/public IP can exhaust this during normal enrollment. Limit failed class-code attempts separately, exempt successful registrations from the failure limit, and add an intentional class-wide capacity control.
 
+  **Remediation implemented locally (2026-08-13):** valid class-code registrations bypass
+  per-IP limiting; wrong codes are limited to 10/IP/15 minutes; authorized provisioning has a
+  configurable whole-class cap of 200/hour. An integration test registers 25 students from
+  one IP and then proves wrong-code throttling. Live deployment remains pending.
+
 - [ ] **[Broker data integrity] Account provisioning is not transactional and hides ACL failures.** After creating a client, `createStudent()` suppresses every role/ACL error (`lib/dynsec.js:78-83`) and only reports the final role-assignment result. It can return success with missing permissions or leave orphan clients/roles on failure. Check idempotent “already exists” cases explicitly, fail on every other error, verify the resulting role/ACL/client binding, and roll back partial creation.
 
   **Remediation implemented locally (2026-08-13):** provisioning now checks each command,
@@ -54,6 +59,12 @@ Verdict: **NO-GO (1 P0, 7 P1, 12 P2)**.
 - [ ] **[Data integrity] Corrupt JSON is silently treated as empty and then overwritten.** `lib/store.js:10-17` turns any read/parse/permission error into `{}`. `lib/codes.js:18-26` similarly recreates the class-code file, possibly from stale `CLASS_CODE`. Distinguish missing files from corruption, refuse destructive writes after parse errors, quarantine bad files, log/alert, and restore from backup.
 
 - [ ] **[Abuse/availability] The public broker has no resource quotas in the supplied configuration.** `deploy/samebox/setup-mosquitto.sh:50-67` exposes TLS MQTT without connection, message-size, inflight, queued-message or per-client protections. Any valid student credential can flood its own namespace and consume resources on the shared VPS. Set and load-test conservative Mosquitto limits and OS/service limits appropriate to the class.
+
+  **Remediation implemented locally (2026-08-13):** supplied Mosquitto setup now limits
+  listener connections, message size, inflight/queued bytes and messages, disables anonymous
+  access, validates configuration before restart, and installs systemd memory/task/fd limits.
+  The portal service has cgroup/fd limits too. Static policy tests pass; this remains open until
+  applied and load-tested on the VPS with the installed Mosquitto 2.0.x build.
 
 - [ ] **[Privacy/compliance — scope must be confirmed] No privacy notice, retention schedule or incident procedure.** The portal collects usernames, optional names and activity timestamps but the repository has no notice or retention/deletion policy. If used for a commercial course or other activity in scope of Malaysia's PDPA, the notice and security/retention obligations need resolution before student rollout; minors require additional institutional review. Minimize display-name collection, publish a notice, define term-end deletion and document incident handling. This is not legal advice.
 

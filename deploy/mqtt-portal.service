@@ -18,6 +18,9 @@ ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=/opt/mqtt-portal/data
 PrivateTmp=true
+LimitNOFILE=1024
+TasksMax=128
+MemoryMax=256M
 
 [Install]
 WantedBy=multi-user.target

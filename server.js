@@ -71,22 +71,41 @@ function requireAdmin(req, res, next) {
   return res.redirect('/login');
 }
 
-const regLimiter = rateLimit({ windowMs: 15 * 60e3, max: 20 });
+// Campus Wi-Fi commonly puts the whole class behind one public IP. Valid registrations
+// must therefore never consume a per-IP quota. Only wrong class-code attempts are limited
+// by IP; a generous global hourly cap protects broker provisioning if a code leaks.
+const badCodeLimiter = rateLimit({
+  windowMs: 15 * 60e3, max: 10, standardHeaders: true, legacyHeaders: false,
+  message: 'Too many wrong class-code attempts. Wait 15 minutes and try again.',
+});
+const registrationCapacityLimiter = rateLimit({
+  windowMs: 60 * 60e3,
+  max: Number.parseInt(process.env.REGISTRATION_HOURLY_CAP || '200', 10),
+  keyGenerator: () => 'whole-class',
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'The class registration capacity has been reached. Ask your instructor.',
+});
 const loginLimiter = rateLimit({ windowMs: 15 * 60e3, max: 10 });
+
+function requireValidClassCode(req, res, next) {
+  if (codes.isValid(String(req.body.classcode || ''))) return registrationCapacityLimiter(req, res, next);
+  return badCodeLimiter(req, res, () => res.status(400).render('register', {
+    error: 'Wrong or missing class code.', done: null, broker,
+  }));
+}
 
 // ---- student registration --------------------------------------------------
 app.get('/', (req, res) => {
   res.render('register', { error: null, done: null, broker });
 });
 
-app.post('/register', regLimiter, async (req, res) => {
+app.post('/register', requireValidClassCode, async (req, res) => {
   const username = String(req.body.username || '').toLowerCase().trim();
   const password = String(req.body.password || '');
   const display = V.cleanDisplayName(req.body.display);
-  const code = String(req.body.classcode || '');
   const err = (m) => res.status(400).render('register', { error: m, done: null, broker });
 
-  if (!codes.isValid(code)) return err('Wrong or missing class code.');
   if (!V.validUsername(username)) return err('Username: start with a letter, 3–20 chars of a–z, 0–9, _ or -, and not a reserved word.');
   if (!V.validPassword(password)) return err('Password must be at least 8 characters.');
 

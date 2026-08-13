@@ -8,6 +8,7 @@ const valid = {
   DYNSEC_MODE: 'real', DYNSEC_ADMIN_PASS: 'password123',
   PUBLIC_BROKER_HOST: 'mqtt.mariffb.my', PUBLIC_BROKER_PORT: '8883',
   PUBLIC_BROKER_WSS_URL: 'wss://mqtt.mariffb.my/mqtt', COOKIE_SECURE: 'true',
+  REGISTRATION_HOURLY_CAP: '200',
 };
 assert.deepStrictEqual(C.validateProductionEnv(valid), []);
 assert(C.validateProductionEnv({ NODE_ENV: 'development' }).length === 0);
@@ -15,4 +16,5 @@ const bad = C.validateProductionEnv({ ...valid, DYNSEC_ADMIN_PASS: '', PUBLIC_BR
 assert(bad.some((x) => x.includes('DYNSEC_ADMIN_PASS')));
 assert(bad.some((x) => x.includes('PUBLIC_BROKER_HOST')));
 assert.throws(() => C.assertProductionEnv({ ...valid, COOKIE_SECURE: 'false' }), /COOKIE_SECURE/);
+assert(C.validateProductionEnv({ ...valid, REGISTRATION_HOURLY_CAP: '10' }).some((x) => x.includes('REGISTRATION_HOURLY_CAP')));
 console.log('production configuration tests passed');
