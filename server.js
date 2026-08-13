@@ -19,6 +19,7 @@ const dynsec = require('./lib/dynsec');
 const store = require('./lib/store');
 const codes = require('./lib/codes');
 const monitor = require('./lib/monitor');
+const snippets = require('./lib/snippets');
 
 const BROKER_HOST = process.env.PUBLIC_BROKER_HOST || 'your-broker.example.com';
 const BROKER_PORT = process.env.PUBLIC_BROKER_PORT || '8883';        // MQTT over TLS (devices)
@@ -98,7 +99,7 @@ app.post('/register', regLimiter, async (req, res) => {
     store.record(username, display, new Date().toISOString());
     return res.render('register', {
       error: null, broker,
-      done: { username, namespace: V.namespaceFor(username) },
+      done: { username, namespace: V.namespaceFor(username), sketch: snippets.portalSketch(broker, username) },
     });
   } catch (e) {
     const msg = /exist/i.test(e.message) ? 'That username is already taken.' : 'Could not create the account. Ask your instructor.';

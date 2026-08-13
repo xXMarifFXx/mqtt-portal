@@ -18,7 +18,9 @@ Student browser ──HTTPS 443──> nginx ──> mqtt-portal (Node, localhos
 ## Features
 - **Register** (`/`): class-code gated → creates a broker account scoped to `devices/<you>/#`.
 - **Connection card** (shown after registering): broker host/port, username, topic namespace,
-  a ready **Arduino (N-R_ESP32) snippet** and a **`mosquitto_sub` test command**, with copy buttons.
+  a ready **Arduino (N-R_ESP32 1.1.3+) sketch** with certificate validation and a
+  **`mosquitto_sub` test command**, with copy buttons. The sketch deliberately uses the same
+  username for `login()` and `begin()` because broker ACLs authorize `devices/<username>/#`.
 - **Test console** (`/console`): connect with your own credentials over **wss** and
   **publish + subscribe live** — the fastest "is my MQTT up?" check. Uses MQTT.js in the browser;
   credentials never touch the portal server.

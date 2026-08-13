@@ -23,14 +23,11 @@
       <tr><th>Your topics</th><td><code>devices/<%= done.username %>/#</code></td></tr>
     </table>
 
-    <h3 class="sectionhead">Arduino (N-R_ESP32 library) <button class="copybtn" data-copy="#ino">Copy</button></h3>
-<pre id="ino">bridge.wifi("YOUR_WIFI", "YOUR_WIFI_PASSWORD")
-      .broker("<%= broker.host %>")          // port auto &rarr; <%= broker.port %>
-      .secure()                              // TLS
-      .login("<%= done.username %>", "YOUR_PASSWORD");
-bridge.begin("<%= done.username %>");        // your topics: devices/<%= done.username %>/…</pre>
-    <small class="muted">Note: <code>.broker("<%= broker.host %>")</code> is the host only —
-      don't add <code>/mqtt</code> (that path is just for the browser test console).</small>
+    <h3 class="sectionhead">Arduino (N-R_ESP32 1.1.3+) <button class="copybtn" data-copy="#ino">Copy</button></h3>
+<pre id="ino"><%= done.sketch %></pre>
+    <small class="muted"><b>Keep <code>bridge.begin(MQTT_USERNAME)</code>.</b> This is the
+      authorized topic name, while N-R_ESP32 automatically gives the physical board a unique
+      MQTT client ID. The certificate is validated; don't add <code>/mqtt</code> to the broker host.</small>
 
     <h3 class="sectionhead">Quick test from a terminal <button class="copybtn" data-copy="#sub">Copy</button></h3>
 <pre id="sub">mosquitto_sub -h <%= broker.host %> -p <%= broker.port %> --capath /etc/ssl/certs \

@@ -3,6 +3,7 @@
 const assert = require('assert');
 const V = require('../lib/validate');
 const dynsec = require('../lib/dynsec');
+const snippets = require('../lib/snippets');
 
 let n = 0, fail = 0;
 function t(name, fn) { n++; try { fn(); console.log('  ok  ' + name); } catch (e) { fail++; console.log('  FAIL ' + name + ' — ' + e.message); } }
@@ -27,6 +28,15 @@ t('secretEquals', () => { assert(V.secretEquals('abc', 'abc')); assert(!V.secret
 
 // --- namespace scoping ---
 t('namespace', () => assert.strictEqual(V.namespaceFor('ada'), 'devices/ada/#'));
+t('portal sketch keeps login and topic namespace identical', () => {
+  const sketch = snippets.portalSketch({ host: 'mqtt.mariffb.my', port: '8883' }, 'ada');
+  assert(sketch.includes('const char* MQTT_USERNAME = "ada";'));
+  assert(sketch.includes('.login(MQTT_USERNAME, MQTT_PASSWORD)'));
+  assert(sketch.includes('bridge.begin(MQTT_USERNAME)'));
+  assert(sketch.includes('.secure(NODEBRIDGE_ISRG_ROOT_X1)'));
+  assert(sketch.includes('.broker("mqtt.mariffb.my", 8883)'));
+  assert(!sketch.includes('.secure()'), 'must not use unvalidated TLS');
+});
 
 // --- display name sanitising ---
 t('cleanDisplayName strips junk', () => assert.strictEqual(V.cleanDisplayName('Ada <b>L</b>'), 'Ada bLb'));

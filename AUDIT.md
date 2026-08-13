@@ -31,6 +31,12 @@ Verdict: **NO-GO (1 P0, 7 P1, 12 P2)**.
 
 - [ ] **[End-to-end correctness] MQTT username and topic namespace can disagree.** Mosquitto accounts are authorized only for `devices/<username>/#` (`lib/dynsec.js:27-30`), while N-R_ESP32 publishes under `devices/<begin(deviceName)>/#` (`src/NodeBridge.cpp:52-58,152-163,216-228`). A board can authenticate and appear connected while all publishes are denied. The current MosquittoTLS example uses different values (`examples/MosquittoTLS/MosquittoTLS.ino:81,86`). Add a portal-specific example that uses the username as the namespace, or add an explicit authorized namespace API and make the portal display exact copy/paste code.
 
+  **Remediation implemented locally (2026-08-13):** the portal now generates a complete,
+  unit-tested sketch using one `MQTT_USERNAME` for both `login()` and `begin()`, with validated
+  TLS. N-R_ESP32 1.1.3 adds the matching `MariffbPortal` example and fixes MosquittoTLS. This
+  remains open until 1.1.3 is published/installed and a physical ESP32 → broker → portal →
+  Node-RED test passes against the live VPS.
+
 - [ ] **[Operations] Health and startup checks report false success.** `/healthz` always returns `{ok:true}` (`server.js:204`), even when broker control, Dynamic Security or the monitor are unavailable. Production startup validates only `SESSION_SECRET` (`server.js:59-64`); missing admin hash or dynsec password leaves an unusable portal running. The deploy script trusts this shallow check (`deploy/deploy.sh:19-21`). Add startup schema validation plus liveness/readiness endpoints that test broker control and monitor subscription separately.
 
 - [ ] **[Data integrity] Corrupt JSON is silently treated as empty and then overwritten.** `lib/store.js:10-17` turns any read/parse/permission error into `{}`. `lib/codes.js:18-26` similarly recreates the class-code file, possibly from stale `CLASS_CODE`. Distinguish missing files from corruption, refuse destructive writes after parse errors, quarantine bad files, log/alert, and restore from backup.
