@@ -11,6 +11,7 @@
   var devEl = $('devstatus');
   var nrEl = $('nrstatus');
   var myUser = '';
+  var displayedUser = '';
 
   function setStatus(text, cls) { statusEl.textContent = text; statusEl.className = 'badge ' + cls; }
   function setDev(text, cls) { if (devEl) { devEl.textContent = text; devEl.className = 'badge ' + cls; } }
@@ -19,15 +20,19 @@
 
   // Prefill topics from the username
   function prefill(u) {
-    if (u && !$('subTopic').value) $('subTopic').value = 'devices/' + u + '/#';
-    if (u && !$('pubTopic').value) $('pubTopic').value = 'devices/' + u + '/test';
+    u = String(u || '').toLowerCase().trim();
+    var oldSub = displayedUser ? 'devices/' + displayedUser + '/#' : '';
+    var oldPub = displayedUser ? 'devices/' + displayedUser + '/test' : '';
+    if (u && (!$('subTopic').value || $('subTopic').value === oldSub)) $('subTopic').value = 'devices/' + u + '/#';
+    if (u && (!$('pubTopic').value || $('pubTopic').value === oldPub)) $('pubTopic').value = 'devices/' + u + '/test';
     $('settings-user').textContent = u || 'enter username above';
     $('settings-topic').textContent = u ? 'devices/' + u + '/#' : 'devices/<username>/#';
     $('settings-device-status').textContent = u ? 'devices/' + u + '/status' : 'devices/<username>/status';
     $('settings-nr-status').textContent = u ? 'devices/' + u + '/nodered/status' : 'devices/<username>/nodered/status';
+    displayedUser = u;
   }
   prefill(user0);
-  $('user').addEventListener('change', function () { prefill($('user').value.trim()); });
+  $('user').addEventListener('input', function () { prefill($('user').value); });
 
   function log(topic, payload) {
     var box = $('messages');
@@ -46,7 +51,9 @@
   $('connect').addEventListener('click', function () {
     if (client) { client.end(true); client = null; }
     var url = $('wss').value.trim();
-    var username = $('user').value.trim();
+    var username = $('user').value.toLowerCase().trim();
+    $('user').value = username;
+    prefill(username);
     var password = $('pass').value;
     myUser = username;
     setStatus('connecting…', 'warn');
