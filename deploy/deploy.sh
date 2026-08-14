@@ -9,6 +9,25 @@ cd "$ROOT"
 previous_commit=$(git rev-parse HEAD)
 rollback_started=0
 
+# A freshly restarted Node process can take a moment to bind its port. Keep
+# expected connection-refused retries quiet; report one clear failure only
+# after the complete startup window has elapsed.
+wait_for_portal() {
+  local endpoint=$1
+  local attempts=${2:-20}
+  local i
+  for ((i = 1; i <= attempts; i++)); do
+    if curl -fsS --max-time 3 "http://127.0.0.1:3001${endpoint}" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  echo "ERROR: portal did not pass ${endpoint} after ${attempts} seconds." >&2
+  echo "Inspect: systemctl status mqtt-portal --no-pager --full" >&2
+  echo "         journalctl -u mqtt-portal -n 80 --no-pager" >&2
+  return 1
+}
+
 rollback() {
   rc=$?
   [[ $rollback_started -eq 0 ]] || exit "$rc"
@@ -20,7 +39,7 @@ rollback() {
   npm ci --omit=dev
   systemctl restart mqtt-portal
   # The previous release may predate /readyz, so rollback checks process liveness.
-  if curl --retry 20 --retry-delay 1 --retry-connrefused -fsS http://127.0.0.1:3001/healthz >/dev/null; then
+  if wait_for_portal /healthz; then
     echo "Rollback succeeded; previous application is serving." >&2
   else
     echo "ROLLBACK FAILED — inspect: journalctl -u mqtt-portal -n 80 --no-pager" >&2
@@ -42,6 +61,6 @@ echo "==> 4/5 Restarting the portal"
 systemctl restart mqtt-portal
 
 echo "==> 5/5 Health check"
-curl --retry 20 --retry-delay 1 --retry-connrefused -fsS http://127.0.0.1:3001/readyz >/dev/null
+wait_for_portal /readyz
 trap - ERR
 echo "Deploy succeeded: $(git rev-parse --short HEAD) — https://mqtt.mariffb.my"
