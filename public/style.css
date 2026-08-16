@@ -63,6 +63,7 @@ th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04
 .devrow .muted{font-size:12px}
 .settingscard{margin-top:26px;padding-top:22px;border-top:2px solid var(--line)}
 .settingscard h2{margin:0}
+.subsectionhead{margin-top:26px;padding-top:20px;border-top:1px solid var(--line)}
 .panel.compact{margin:14px 0;padding:12px}.panel.compact p{margin:0}
 .checklabel{display:flex;gap:10px;align-items:flex-start;font-weight:400}.checklabel input{width:auto;margin:3px 0 0}.checklabel span{flex:1}
 footer{border-top:1px solid var(--line);margin-top:22px;padding-top:14px;font-size:13px;color:var(--muted)}

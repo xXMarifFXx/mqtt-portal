@@ -29,6 +29,11 @@
     $('settings-topic').textContent = u ? 'devices/' + u + '/#' : 'devices/<username>/#';
     $('settings-device-status').textContent = u ? 'devices/' + u + '/status' : 'devices/<username>/status';
     $('settings-nr-status').textContent = u ? 'devices/' + u + '/nodered/status' : 'devices/<username>/nodered/status';
+    $('nr-settings-user').textContent = u || 'enter username above';
+    $('nr-settings-client').textContent = u ? 'nodered-' + u : 'nodered-<username>';
+    $('nr-settings-sub').textContent = u ? 'devices/' + u + '/#' : 'devices/<username>/#';
+    $('nr-settings-birth').textContent = u ? 'devices/' + u + '/nodered/status' : 'devices/<username>/nodered/status';
+    $('nr-settings-will').textContent = u ? 'devices/' + u + '/nodered/status' : 'devices/<username>/nodered/status';
     displayedUser = u;
   }
   prefill(user0);

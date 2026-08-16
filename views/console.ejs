@@ -67,6 +67,26 @@
       <tr><th>ESP32 presence</th><td><code id="settings-device-status"><%= prefill ? 'devices/' + prefill + '/status' : 'devices/&lt;username&gt;/status' %></code></td></tr>
       <tr><th>Node-RED presence</th><td><code id="settings-nr-status"><%= prefill ? 'devices/' + prefill + '/nodered/status' : 'devices/&lt;username&gt;/nodered/status' %></code></td></tr>
     </table>
+    <div class="row spread subsectionhead">
+      <h2 id="nodered-settings-title">Your Node-RED settings</h2>
+      <button class="copybtn" data-copy="#nodered-settings">Copy</button>
+    </div>
+    <p class="sub">Use these values in the shared MQTT broker configuration used by your Node-RED MQTT In and MQTT Out nodes.</p>
+    <table class="kv" id="nodered-settings" aria-labelledby="nodered-settings-title">
+      <tr><th>Name</th><td><code>MariffB MQTT</code></td></tr>
+      <tr><th>Server</th><td><code><%= broker.host %></code></td></tr>
+      <tr><th>Port</th><td><code><%= broker.port %></code></td></tr>
+      <tr><th>TLS</th><td><code>Enabled</code> &nbsp;·&nbsp; verify server certificate</td></tr>
+      <tr><th>Protocol</th><td><code>MQTT 3.1.1</code></td></tr>
+      <tr><th>Username</th><td><code id="nr-settings-user"><%= prefill || 'enter username above' %></code></td></tr>
+      <tr><th>Password</th><td><code>your registered MQTT password</code></td></tr>
+      <tr><th>Client ID</th><td><code id="nr-settings-client"><%= prefill ? 'nodered-' + prefill : 'nodered-&lt;username&gt;' %></code></td></tr>
+      <tr><th>Keep alive</th><td><code>60 seconds</code></td></tr>
+      <tr><th>Clean session</th><td><code>Enabled</code></td></tr>
+      <tr><th>MQTT In topic</th><td><code id="nr-settings-sub"><%= prefill ? 'devices/' + prefill + '/#' : 'devices/&lt;username&gt;/#' %></code></td></tr>
+      <tr><th>Birth</th><td><code id="nr-settings-birth"><%= prefill ? 'devices/' + prefill + '/nodered/status' : 'devices/&lt;username&gt;/nodered/status' %></code> → <code>online</code>, retained</td></tr>
+      <tr><th>Close / Will</th><td><code id="nr-settings-will"><%= prefill ? 'devices/' + prefill + '/nodered/status' : 'devices/&lt;username&gt;/nodered/status' %></code> → <code>offline</code>, retained</td></tr>
+    </table>
     <div class="panel compact">
       <b>Node-RED online indicator setup</b>
       <p class="hint">In Node-RED's MQTT broker configuration, set a retained birth message of <code>online</code> and retained close/will message of <code>offline</code>, both on the Node-RED presence topic above.</p>
